@@ -8,6 +8,16 @@ import { getDatabase, ref, update, onChildAdded } from "firebase/database";
 const FIR_KEY = process.env.FIR_KEY;
 
 // Configuration Firebase (remplacez par vos propres informations)
+const firebaseConfig = {
+  apiKey: FIR_KEY,
+  authDomain: "vrgptt.firebaseapp.com",
+  databaseURL: "https://vrgptt-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "vrgptt",
+  storageBucket: "vrgptt.appspot.com",
+  messagingSenderId: "747866018411",
+  appId: "1:747866018411:web:b8bf59759eb9abdd24572e",
+  measurementId: "G-LMC0P3ZQQ0"
+};
 
 // Initialisation de Firebase
 const app = initializeApp(firebaseConfig);
@@ -15,6 +25,7 @@ const database = getDatabase(app);
 
 const openaiApiKey = process.env.OPENAI_API_KEY;
 
+// Initialisation de l'API OpenAI avec votre clé API
 const openai = new OpenAI({
   apiKey: openaiApiKey, // Remplacez par votre clé API OpenAI
 });
