@@ -2,7 +2,8 @@
 import OpenAI from "openai";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, update, onChildAdded } from "firebase/database";
-
+import dotenv from 'dotenv';
+dotenv.config();
 const FIR_KEY = process.env.FIR_KEY;
 
 // Configuration Firebase (remplacez par vos propres informations)
