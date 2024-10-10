@@ -24,8 +24,8 @@
 </template>
 
 <script>
-import { getDatabase, ref, onValue } from 'firebase/database';
-import { getCurrentUser } from '../firebase';  // Import the getCurrentUser function from firebase.js
+import {  ref, onValue } from 'firebase/database';
+import { getCurrentUser, database } from '../firebase';  // Import the getCurrentUser function from firebase.js
 
 export default {
   data() {
@@ -36,7 +36,7 @@ export default {
   created() {
     const user = getCurrentUser();  // Use the getCurrentUser function
     if (user) {
-      const db = getDatabase();
+      const db = database;
       const quizzesRef = ref(db, `quizzes/${user.uid}`);
       onValue(quizzesRef, (snapshot) => {
         this.quizzes = snapshot.val() || {};

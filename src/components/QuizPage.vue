@@ -47,8 +47,8 @@
 </template>
 
 <script>
-import { getDatabase, ref, onValue, set } from 'firebase/database';
-import { getCurrentUser, saveQuizToFirebase } from '../firebase';
+import {  ref, onValue, set } from 'firebase/database';
+import { getCurrentUser, saveQuizToFirebase,database } from '../firebase';
 
 export default {
   data() {
@@ -92,7 +92,7 @@ export default {
       }
     },
     saveCategoryToFirebase() {
-      const db = getDatabase();
+      const db = database;
       const categoryRef = ref(db, `category/${this.selectedMainCategory}`);
 
       // Prepare the data to save in Firebase
@@ -129,7 +129,7 @@ export default {
   },
   created() {
     // Charger les quizzes depuis Firebase
-    const db = getDatabase();
+    const db = database;
     const quizzesRef = ref(db, 'quizzes');
 
     onValue(quizzesRef, (snapshot) => {

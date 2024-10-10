@@ -1,20 +1,22 @@
 <template>
   <nav class="navbar">
     <div class="nav-brand">
-      <router-link to="/">Quiz App</router-link>
+      <router-link to="/">Eval LLM</router-link>
     </div>
     <ul class="nav-menu">
       <li><router-link to="/">Home</router-link></li>
-      <li v-if="isAuthenticated"><router-link to="/study">Study</router-link></li>
+      <li v-if="isAuthenticated && isGmailUser"><router-link to="/study">Learn with quiz</router-link></li>
       <li><router-link to="/about">About</router-link></li>
-      <li><router-link to="/contact">Contact</router-link></li>
       
-      <!-- Show 'Profile', 'Quiz Management' only if the user is logged in -->
-      <li v-if="isAuthenticated"><router-link to="/profile">Profile</router-link></li>
-      <li v-if="isAuthenticated"><router-link to="/quiz-manage">Create Quiz</router-link></li>
+      <!-- Show 'Profile', 'Quiz Management' only if the user is logged in with Gmail -->
+      <li v-if="isAuthenticated && isGmailUser"><router-link to="/quiz-manage">Quiz Management</router-link></li>
+
+      <li v-if="isAuthenticated && isGmailUser"><router-link to="/profile">Profile</router-link></li>
+
+      <li><router-link to="/contact">Contact</router-link></li>
 
       <!-- Conditional Login/Logout button -->
-      <li v-if="isAuthenticated">
+      <li v-if="isAuthenticated && isGmailUser">
         <a @click="logout">Logout</a>
       </li>
       <li v-else>
@@ -25,32 +27,40 @@
 </template>
 
 <script>
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
+import { auth } from '@/firebase';
 
 export default {
   name: "NavBar",
   data() {
     return {
       isAuthenticated: false, // Track if the user is logged in
+      isGmailUser: false, // Track if the user is logged in with Gmail
     };
   },
   mounted() {
     // Check Firebase authentication state
-    const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       if (user) {
         this.isAuthenticated = true; // User is logged in
+
+        // Check if the user signed in with Gmail
+        const providerData = user.providerData;
+        this.isGmailUser = providerData.some(
+          (provider) => provider.providerId === "google.com"
+        );
       } else {
         this.isAuthenticated = false; // User is not logged in
+        this.isGmailUser = false; // Reset Gmail status
       }
     });
   },
   methods: {
     logout() {
-      const auth = getAuth();
       signOut(auth)
         .then(() => {
           this.isAuthenticated = false; // Set to false on logout
+          this.isGmailUser = false; // Reset Gmail status
           this.$router.push("/"); // Redirect to home
         })
         .catch((error) => {
@@ -62,6 +72,7 @@ export default {
 </script>
 
 <style scoped>
+/* Keep your CSS the same */
 .navbar {
   background-color: #333;
   color: white;

@@ -23,8 +23,8 @@
   </template>
   
   <script>
-  import { getDatabase, ref, update } from 'firebase/database';
-  import { getCurrentUser } from '../firebase';
+  import {  ref, update } from 'firebase/database';
+  import { getCurrentUser , database} from '../firebase';
   
   export default {
     data() {
@@ -48,7 +48,7 @@
       },
       async saveQuiz() {
         const user = getCurrentUser();
-        const db = getDatabase();
+        const db = database;
         const quizRef = ref(db, `quizzes/${user.uid}/${this.quizId}`);
         
         const updatedQuiz = {

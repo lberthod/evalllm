@@ -2,7 +2,7 @@
 <template>
     <footer class="footer">
       <div class="footer-content">
-        <p>&copy; 2024 QuizApp. Tous droits réservés.</p>
+        <p>&copy; 2024 Eval LLM. Tous droits réservés.</p>
         <div class="footer-links">
           <a href="/contact">Contact</a>
           <a href="/about">À propos</a>

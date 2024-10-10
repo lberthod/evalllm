@@ -21,8 +21,8 @@
   </template>
   
   <script>
-  import { getDatabase, ref, onValue, push } from 'firebase/database';
-  import { getCurrentUser } from '@/firebase';
+  import {  ref, onValue, push } from 'firebase/database';
+  import { getCurrentUser, database } from '@/firebase';
   
   export default {
     data() {
@@ -35,7 +35,7 @@
     },
     created() {
       const quizId = this.$route.params.id;
-      const db = getDatabase();
+      const db = database;
       
       // Rechercher le quiz par son ID dans Firebase
       const quizzesRef = ref(db, `quizzes`);
@@ -58,7 +58,7 @@
     methods: {
       async submitAnswer(questionIndex) {
         const user = getCurrentUser();
-        const db = getDatabase();
+        const db = database;
         const question = this.quiz.questions[questionIndex];
         const userAnswer = this.answers[questionIndex];
         
@@ -85,7 +85,7 @@
         }
       },
       listenForFeedback(answerKey, questionIndex) {
-        const db = getDatabase();
+        const db = database;
         const feedbackPath = `/answers/${answerKey}/feedback`;
   
         // Écouter les mises à jour du feedback dans Firebase

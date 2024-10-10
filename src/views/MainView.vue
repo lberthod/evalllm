@@ -40,8 +40,8 @@
 </template>
 
 <script>
-import { getAuth, signInAnonymously } from "firebase/auth";
-import { pushData, listenForFeedback } from "@/firebase";
+import { signInAnonymously } from "firebase/auth";
+import { pushData, listenForFeedback , auth} from "@/firebase";
 
 export default {
   data() {
@@ -58,7 +58,6 @@ export default {
   },
   methods: {
     checkAuthStatus() {
-      const auth = getAuth();
       const currentUser = auth.currentUser;
 
       if (!currentUser) {

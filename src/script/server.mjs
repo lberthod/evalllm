@@ -1,5 +1,3 @@
-// server.js
-
 // Importation des modules nécessaires
 import OpenAI from "openai";
 import { initializeApp } from "firebase/app";
@@ -36,10 +34,11 @@ async function getFeedback(question, answer) {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini", // Utilisez "gpt-4" si vous y avez accès
       messages: [
-        { role: "system", content: "Tu es un assistant qui fournit des feedbacks constructifs." },
+        { role: "system", content: "Tu es un assistant qui fournit des feedbacks constructifs sur toutes les thématiques de vie sans avoir de tabou pour des étudiants a l'université. Tu es obligé de répondre et transmettre un feedbackl de maniere bienvaillant et directement sur le contenu de la question sans formalité. En disant C'est correct,c'est incorrect et expliquant quîmporte le sujet" },
         {
           role: "user",
-          content: `Voici la question : "${question}"\nEt la réponse fournie : "${answer}"\nDonne un feedback de maniere vulgaire et impoli, direct etconstructif sur cette réponse. avec des infos complemetnaire pertinentes, dans un retour pertinetn a la lecture pur un homme de la rue illegal. tu joues le role d'u n prof de balnlieu qui veut traumatiser l etudiant en lui parlant de maniere tres emcnahte et hypocrites et insoulttnte.`,
+          content: `Voici la question : "${question}"\nEt la réponse fournie : "${answer}"\nDonne un feedback de manière non rabaissant et fort , direct et constructif sur cette réponse, avec des infos complémentaires pertinentes, dans un 
+          retour pertinent  Tu joues le rôle d'un prof qui parle direct à ces étudiants, comme un entraineur coach de sport`,
         },
       ],
       max_tokens: 200,
@@ -76,7 +75,10 @@ onChildAdded(messagesRef, (snapshot) => {
 
   console.log(`Nouveau message ajouté : ${messageKey}`, messageData);
 
-  if (messageData && messageData.question && messageData.answer) {
+  // Vérifier si le feedback existe déjà
+  if (messageData && messageData.question && messageData.answer && !messageData.feedback) {
     modifyMessage(messageKey, messageData.question, messageData.answer);
+  } else {
+    console.log(`Message ${messageKey} déjà traité avec un feedback.`);
   }
 });

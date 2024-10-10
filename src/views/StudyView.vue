@@ -45,8 +45,9 @@
   </template>
   
   <script>
-  import { getDatabase, ref, onValue } from 'firebase/database';
-  
+  import {  ref, onValue } from 'firebase/database';
+  import {  database } from '../firebase';  // Import the getCurrentUser function from firebase.js
+
   export default {
     data() {
       return {
@@ -96,7 +97,7 @@
       }
     },
     created() {
-      const db = getDatabase();
+      const db = database;
       
       // Charger les quizzes depuis Firebase
       const quizzesRef = ref(db, 'quizzes');

@@ -28,7 +28,8 @@
 </template>
 
 <script>
-import { getDatabase, ref, push } from 'firebase/database';
+import {  ref, push } from 'firebase/database';
+import {  database } from '../firebase';  // Import the getCurrentUser function from firebase.js
 
 export default {
   name: "ContactView",
@@ -51,7 +52,7 @@ export default {
         return;
       }
 
-      const db = getDatabase();
+      const db = database;
       const contactRef = ref(db, 'contacts_form');
 
       // Prepare contact data
