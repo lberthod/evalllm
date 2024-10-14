@@ -76,13 +76,13 @@ import { auth, database } from '../firebase';
 export default {
   data() {
     return {
-      question: "Quel sont les pays avec une frontière terrestre avec la France?", // Dynamic example question
+      question: "", // Question starts empty to avoid auto-setting
       userAnswer: "",
       successMessage: "",
       feedbackMessage: "",
       submitted: false, // Track if the user has submitted the answer
       progressPercentage: 50, // Example progress percentage for the progress bar
-      questionsList: ["Quelle est la plus grande planète du système solaire?", "Quel sport est typique indien?"] // Store all the questions fetched from the database
+      questionsList: [] // Will store all fetched questions from the database
     };
   },
   mounted() {
@@ -131,67 +131,70 @@ export default {
     },
     listenForFeedback(answerKey) {
       const feedbackPath = `/answers/${answerKey}/feedback`;
-      ref(database, feedbackPath).on("value", (snapshot) => {
+      const feedbackRef = ref(database, feedbackPath);
+
+      // Update to properly listen for feedback
+      onValue(feedbackRef, (snapshot) => {
         const feedback = snapshot.val();
         if (feedback) {
           this.feedbackMessage = feedback;
+          console.log("Feedback mis à jour :", feedback);
         } else {
           this.feedbackMessage = "Aucun feedback disponible pour le moment.";
         }
       });
     },
     fetchQuestions() {
-  const quizzesRef = ref(database, '/quizzs2'); // Root path for quizzes
-  onValue(quizzesRef, (snapshot) => {
-    const quizzesData = snapshot.val();
-    this.questionsList = [];
+      const quizzesRef = ref(database, '/quizzs2'); // Root path for quizzes
+      onValue(quizzesRef, (snapshot) => {
+        const quizzesData = snapshot.val();
+        this.questionsList = [];
 
-    // Loop over main categories, subcategories, precise categories, and quiz IDs to get the questions
-    for (const mainCategory in quizzesData) {
-      for (const subCategory in quizzesData[mainCategory]) {
-        for (const preciseCategory in quizzesData[mainCategory][subCategory]) {
-          for (const quizID in quizzesData[mainCategory][subCategory][preciseCategory]) {
-            const quiz = quizzesData[mainCategory][subCategory][preciseCategory][quizID];
-            if (quiz.questions) {
-              // Push all questions from this quiz into the questionsList array
-              this.questionsList.push(...quiz.questions.map(question => ({
-                ...question, 
-                mainCategory, 
-                subCategory, 
-                preciseCategory, 
-                quizID, 
-                quizTheme: quiz.theme // Add additional details for each question
-              })));
+        // Loop over main categories, subcategories, precise categories, and quiz IDs to get the questions
+        for (const mainCategory in quizzesData) {
+          for (const subCategory in quizzesData[mainCategory]) {
+            for (const preciseCategory in quizzesData[mainCategory][subCategory]) {
+              for (const quizID in quizzesData[mainCategory][subCategory][preciseCategory]) {
+                const quiz = quizzesData[mainCategory][subCategory][preciseCategory][quizID];
+                if (quiz.questions) {
+                  // Push all questions from this quiz into the questionsList array
+                  this.questionsList.push(...quiz.questions.map(question => ({
+                    ...question, 
+                    mainCategory, 
+                    subCategory, 
+                    preciseCategory, 
+                    quizID, 
+                    quizTheme: quiz.theme // Add additional details for each question
+                  })));
+                }
+              }
             }
           }
         }
+
+        // After fetching all questions, get a random one
+        this.getRandomQuestion();
+      });
+    },
+    getRandomQuestion() {
+      if (this.questionsList.length > 0) {
+        const randomIndex = Math.floor(Math.random() * this.questionsList.length);
+        const randomQuestion = this.questionsList[randomIndex];
+        this.question = randomQuestion.title; // Display the random question
+        this.quizMetadata = {
+          mainCategory: randomQuestion.mainCategory,
+          subCategory: randomQuestion.subCategory,
+          preciseCategory: randomQuestion.preciseCategory,
+          quizID: randomQuestion.quizID,
+          quizTheme: randomQuestion.quizTheme,
+        }; // Store the metadata for future use if needed
+      } else {
+        this.question = "Aucune question disponible pour le moment.";
       }
-    }
-
-    // After fetching all questions, get a random one
-    this.getRandomQuestion();
-  });
-},
-
-getRandomQuestion() {
-  if (this.questionsList.length > 0) {
-    const randomIndex = Math.floor(Math.random() * this.questionsList.length);
-    const randomQuestion = this.questionsList[randomIndex];
-    this.question = randomQuestion.title; // Display the random question
-    this.quizMetadata = {
-      mainCategory: randomQuestion.mainCategory,
-      subCategory: randomQuestion.subCategory,
-      preciseCategory: randomQuestion.preciseCategory,
-      quizID: randomQuestion.quizID,
-      quizTheme: randomQuestion.quizTheme,
-    }; // Store the metadata for future use if needed
-  } else {
-    this.question = "Aucune question disponible pour le moment.";
-  }
-},
-
+    },
   }
 };
+
 </script>
 
 <style>
