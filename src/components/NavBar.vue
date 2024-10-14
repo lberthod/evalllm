@@ -1,86 +1,139 @@
 <template>
   <nav class="navbar">
     <div class="nav-brand">
-      <router-link to="/">Eval LLM</router-link>
+      <router-link to="/">QuizTrailo</router-link>
+      <!-- Hamburger icon for mobile -->
+      <div class="hamburger" @click="toggleMobileMenu">
+        <span :class="{ 'open': isMobileMenuOpen }"></span>
+        <span :class="{ 'open': isMobileMenuOpen }"></span>
+        <span :class="{ 'open': isMobileMenuOpen }"></span>
+      </div>
     </div>
-    <ul class="nav-menu">
-      <li><router-link to="/">Home</router-link></li>
-      <li v-if="isAuthenticated && isGmailUser"><router-link to="/study">Learn with quiz</router-link></li>
-      <li><router-link to="/about">About</router-link></li>
-      
-      <!-- Show 'Profile', 'Quiz Management' only if the user is logged in with Gmail -->
-      <li v-if="isAuthenticated && isGmailUser"><router-link to="/quiz-manage">Quiz Management</router-link></li>
+
+    <!-- Desktop Menu -->
+    <ul class="nav-menu" v-if="!isMobile">
+      <li><router-link to="/">QuizTrailo</router-link></li>
+      <li><router-link to="/about">À propos</router-link></li>
+      <li v-if="isAuthenticated"><router-link to="/study">Quizs</router-link></li>
+      <li v-if="isAuthenticated && isGmailUser">
+        <router-link to="/quiz-manage">Dashboard</router-link>
+      </li>
+      <li v-if="isAuthenticated"><router-link to="/navigator">Listing</router-link></li>
+      <li v-if="isAuthenticated && isGmailUser"><router-link to="/historique">Historique</router-link></li>
 
       <li v-if="isAuthenticated && isGmailUser"><router-link to="/profile">Profile</router-link></li>
-
       <li><router-link to="/contact">Contact</router-link></li>
-
-      <!-- Conditional Login/Logout button -->
       <li v-if="isAuthenticated && isGmailUser">
-        <a @click="logout">Logout</a>
+        <a @click.prevent="logout">Logout</a>
       </li>
-      <li v-else>
-        <router-link to="/login">Login</router-link>
-      </li>
+      <li v-else><router-link to="/login">Login</router-link></li>
+
     </ul>
+
+    <!-- Mobile Menu -->
+    <transition name="slide">
+      <ul class="nav-menu-mobile" v-if="isMobileMenuOpen && isMobile">
+        <li><router-link to="/" @click="closeMobileMenu">QuizTrailo</router-link></li>
+        <li><router-link to="/about" @click="closeMobileMenu">À propos</router-link></li>
+        <li v-if="isAuthenticated">
+          <router-link to="/study" @click="closeMobileMenu">Quizs</router-link>
+        </li>
+        <li v-if="isAuthenticated && isGmailUser">
+          <router-link to="/quiz-manage" @click="closeMobileMenu">Dashboard</router-link>
+        </li>
+        <li v-if="isAuthenticated && isGmailUser">
+          <router-link to="/profile" @click="closeMobileMenu">Profile</router-link>
+        </li>
+        <li><router-link to="/contact" @click="closeMobileMenu">Contact</router-link></li>
+        <li v-if="isAuthenticated && isGmailUser">
+          <a @click.prevent="logout">Logout</a>
+        </li>
+        <li v-else><router-link to="/login" @click="closeMobileMenu">Login</router-link></li>
+      </ul>
+    </transition>
   </nav>
 </template>
-
 <script>
-import { signOut, onAuthStateChanged } from "firebase/auth";
+import { ref, onMounted, computed } from 'vue';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
+import { useRouter } from 'vue-router';
 import { auth } from '@/firebase';
 
 export default {
-  name: "NavBar",
-  data() {
-    return {
-      isAuthenticated: false, // Track if the user is logged in
-      isGmailUser: false, // Track if the user is logged in with Gmail
-    };
-  },
-  mounted() {
-    // Check Firebase authentication state
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        this.isAuthenticated = true; // User is logged in
+  name: 'NavBar',
+  setup() {
+    const isAuthenticated = ref(false);
+    const isGmailUser = ref(false);
+    const isMobileMenuOpen = ref(false);
+    const router = useRouter();
 
-        // Check if the user signed in with Gmail
-        const providerData = user.providerData;
-        this.isGmailUser = providerData.some(
-          (provider) => provider.providerId === "google.com"
-        );
-      } else {
-        this.isAuthenticated = false; // User is not logged in
-        this.isGmailUser = false; // Reset Gmail status
-      }
-    });
-  },
-  methods: {
-    logout() {
+    const isMobile = computed(() => window.innerWidth <= 768);
+
+    const toggleMobileMenu = () => {
+      isMobileMenuOpen.value = !isMobileMenuOpen.value;
+    };
+
+    const closeMobileMenu = () => {
+      isMobileMenuOpen.value = false;
+    };
+
+    const logout = () => {
       signOut(auth)
         .then(() => {
-          this.isAuthenticated = false; // Set to false on logout
-          this.isGmailUser = false; // Reset Gmail status
-          this.$router.push("/"); // Redirect to home
+          isAuthenticated.value = false;
+          isGmailUser.value = false;
+          router.push('/');
         })
         .catch((error) => {
-          console.error("Logout error:", error);
+          console.error('Logout error:', error);
         });
-    },
+    };
+
+    onMounted(() => {
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+          isMobileMenuOpen.value = false;
+        }
+      });
+
+      // Check Firebase authentication state
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          isAuthenticated.value = true;
+          isGmailUser.value = user.providerData.some(
+            (provider) => provider.providerId === 'google.com'
+          );
+        } else {
+          isAuthenticated.value = false;
+          isGmailUser.value = false;
+        }
+      });
+    });
+
+    return {
+      isAuthenticated,
+      isGmailUser,
+      isMobileMenuOpen,
+      isMobile,
+      toggleMobileMenu,
+      closeMobileMenu,
+      logout,
+    };
   },
 };
 </script>
-
 <style scoped>
-/* Keep your CSS the same */
+/* Navbar Styles */
 .navbar {
   background-color: #333;
   color: white;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   padding: 15px 20px;
-  align-items: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
 }
 
 .nav-brand a {
@@ -90,6 +143,7 @@ export default {
   font-weight: bold;
 }
 
+/* Desktop Menu */
 .nav-menu {
   list-style-type: none;
   display: flex;
@@ -110,21 +164,91 @@ export default {
 }
 
 .nav-menu li a.active {
-  color: #00bcd4; /* Highlight active link */
+  color: #00bcd4;
   font-weight: bold;
 }
 
-.nav-menu li a {
+/* Hamburger Menu */
+.hamburger {
+  display: none;
   cursor: pointer;
-  padding: 5px 10px;
-  border-radius: 4px;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.nav-menu li a:hover {
-  background-color: #444;
+.hamburger span {
+  display: block;
+  width: 25px;
+  height: 3px;
+  background-color: white;
+  transition: all 0.3s ease;
 }
 
-.nav-menu li a.active:hover {
+.hamburger span.open:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.hamburger span.open:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger span.open:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile Menu */
+.nav-menu-mobile {
+  position: absolute;
+  top: 60px;
+  right: 0;
   background-color: #333;
+  width: 100%;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-menu-mobile li {
+  text-align: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #444;
+}
+
+.nav-menu-mobile li a {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  display: block;
+}
+
+.nav-menu-mobile li a:hover {
+  color: #00bcd4;
+}
+
+/* Slide Transition */
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateY(-100%);
+}
+
+.slide-enter-to,
+.slide-leave-from {
+  transform: translateY(0);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
 }
 </style>

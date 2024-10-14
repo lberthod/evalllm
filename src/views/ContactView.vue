@@ -1,35 +1,45 @@
 <template>
-  <div class="container">
-    <h1>Contactez-nous</h1>
-    <p>Pour toute question, n'hésitez pas à nous contacter à <a href="mailto:contact@quizapp.com">contact@quizapp.com</a>.</p>
-
-    <form @submit.prevent="submitContactForm" class="contact-form">
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input v-model="formData.email" type="email" id="email" placeholder="Votre email" required />
+  <div class="contact-container">
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-content">
+        <h1>Contactez-nous</h1>
+        <p>Pour toute question, n'hésitez pas à nous contacter via le formulaire ci-dessous.</p>
+        <div class="rope"></div> <!-- Corde pour l'effet -->
       </div>
+    </header>
 
-      <div class="form-group">
-        <label for="title">Sujet:</label>
-        <input v-model="formData.title" type="text" id="title" placeholder="Sujet de votre message" required />
-      </div>
+    <!-- Contact Form Section -->
+    <section class="form-section">
+      <form @submit.prevent="submitContactForm" class="contact-form">
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input v-model="formData.email" type="email" id="email" placeholder="Votre email" required />
+        </div>
 
-      <div class="form-group">
-        <label for="message">Message:</label>
-        <textarea v-model="formData.message" id="message" rows="6" placeholder="Votre message" required></textarea>
-      </div>
+        <div class="form-group">
+          <label for="title">Sujet:</label>
+          <input v-model="formData.title" type="text" id="title" placeholder="Sujet de votre message" required />
+        </div>
 
-      <button type="submit">Envoyer</button>
+        <div class="form-group">
+          <label for="message">Message:</label>
+          <textarea v-model="formData.message" id="message" rows="6" placeholder="Votre message" required></textarea>
+        </div>
 
-      <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-      <p v-if="successMessage" class="success">{{ successMessage }}</p>
-    </form>
+        <button type="submit" class="cta-button with-rope">Envoyer</button>
+        <div class="rope"></div> <!-- Corde pour l'effet -->
+
+        <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
+        <p v-if="successMessage" class="success">{{ successMessage }}</p>
+      </form>
+    </section>
   </div>
 </template>
 
 <script>
-import {  ref, push } from 'firebase/database';
-import {  database } from '../firebase';  // Import the getCurrentUser function from firebase.js
+import { ref, push } from 'firebase/database';
+import { database } from '../firebase';  // Assurez-vous d'importer Firebase correctement
 
 export default {
   name: "ContactView",
@@ -80,41 +90,63 @@ export default {
 </script>
 
 <style scoped>
-/* Main container for the contact page */
-.container {
-  max-width: 700px;
-  margin: 50px auto;
-  padding: 30px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* Main Container */
+.contact-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
   text-align: center;
 }
 
-/* Page title */
-h1 {
-  font-size: 32px;
-  margin-bottom: 20px;
-  color: #333;
+/* Hero Section */
+.hero {
+  background-image: url('@/assets/back.png'); /* Image de fond personnalisée */
+  background-size: cover;
+  background-position: center;
+  padding: 100px 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  border-radius: 12px;
+  margin-bottom: 50px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-/* Paragraph and link styles */
-p {
-  font-size: 18px;
-  color: #555;
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+.hero h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.hero p {
+  font-size: 20px;
   margin-bottom: 30px;
 }
 
-p a {
-  color: #007bff;
-  text-decoration: none;
+/* Form Section */
+.form-section {
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 700px;
 }
 
-p a:hover {
-  text-decoration: underline;
-}
-
-/* Contact form styles */
+/* Contact Form Styles */
 .contact-form {
   display: flex;
   flex-direction: column;
@@ -122,13 +154,12 @@ p a:hover {
   align-items: center;
 }
 
-/* Form group container */
+/* Form Group Styles */
 .form-group {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-bottom: 10px;
 }
 
 .form-group label {
@@ -137,7 +168,7 @@ p a:hover {
   margin-bottom: 5px;
 }
 
-/* Input and textarea styles */
+/* Input and Textarea Styles */
 input, textarea {
   width: 100%;
   padding: 12px;
@@ -154,24 +185,58 @@ input:focus, textarea:focus {
   box-shadow: inset 0 2px 8px rgba(0, 123, 255, 0.2);
 }
 
-/* Button styles */
-button {
-  padding: 12px 30px;
-  background-color: #007bff;
+/* CTA Button Styles */
+.cta-button {
+  padding: 15px 35px;
+  font-size: 18px;
+  background-color: #FF7043;
   color: white;
   border-radius: 8px;
   border: none;
-  font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-button:hover {
-  background-color: #0056b3;
-  box-shadow: 0 6px 12px rgba(0, 123, 255, 0.2);
+.cta-button:hover {
+  background-color: #E64A19;
+  box-shadow: 0px 8px 16px rgba(255, 112, 67, 0.3);
 }
 
-/* Success and error message styles */
+.with-rope {
+  position: relative;
+}
+
+/* Rope animation */
+.rope {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 4px;
+  background-color: #FF7043;
+  width: 0;
+  transition: width 0.4s ease-in-out, transform 0.2s ease;
+  transform-origin: left;
+}
+
+.cta-button:active ~ .rope {
+  width: 100%;
+  transform: translateX(-50%) rotate(10deg);
+  animation: wiggle 0.5s ease infinite;
+}
+
+/* Wiggle animation for the rope */
+@keyframes wiggle {
+  0%, 100% {
+    transform: translateX(-50%) rotate(10deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(-10deg);
+  }
+}
+
+/* Success and Error Message Styles */
 .success {
   color: green;
   margin-top: 20px;
@@ -184,23 +249,27 @@ button:hover {
   font-size: 16px;
 }
 
-/* Responsive design */
+/* Responsive Design */
 @media (max-width: 768px) {
-  .container {
-    padding: 20px;
+  .hero h1 {
+    font-size: 36px;
   }
 
-  h1 {
-    font-size: 28px;
+  .hero p {
+    font-size: 18px;
+  }
+
+  .cta-button {
+    font-size: 16px;
+    padding: 12px 30px;
+  }
+
+  .form-section {
+    padding: 20px;
   }
 
   input, textarea {
     font-size: 14px;
-  }
-
-  button {
-    font-size: 14px;
-    padding: 10px 25px;
   }
 }
 </style>

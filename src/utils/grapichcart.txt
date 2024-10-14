@@ -1,0 +1,89 @@
+. Palette de Couleurs
+La palette de couleurs doit évoquer l'idée de nature, de progression et d'aventure éducative, tout en restant moderne et engageante.
+
+Couleurs principales :
+Vert forêt (pour évoquer le sentier d'apprentissage et la nature) :
+Hex : #4CAF50
+Utilisation : Couleur principale pour les boutons CTA, les titres, et les éléments de navigation.
+Bleu ciel clair (pour un sentiment d'ouverture et d'exploration) :
+Hex : #81D4FA
+Utilisation : Fond de section ou pour les éléments secondaires comme les icônes.
+Orange chaleureux (pour l'énergie, le dynamisme, et les étapes franchies) :
+Hex : #FF7043
+Utilisation : Mettre en avant des éléments importants, comme les badges ou les notifications de progression.
+Couleurs secondaires :
+Blanc (pureté, simplicité) :
+Hex : #FFFFFF
+Utilisation : Fond principal pour maintenir un design aéré.
+Gris clair (neutralité, lisibilité) :
+Hex : #F5F5F5
+Utilisation : Arrière-plan des sections secondaires ou pour les séparations visuelles.
+Gris anthracite (pour la typographie et les éléments de texte non essentiels) :
+Hex : #333333
+Utilisation : Couleur du texte standard et des éléments discrets.
+Accent :
+Rouge vif (alerte, erreurs ou informations importantes) :
+Hex : #E53935
+Utilisation : Utilisé avec parcimonie pour les erreurs, messages d'alerte, ou boutons de suppression.
+2. Typographie
+La typographie doit être claire, moderne, et accessible. Il est essentiel de choisir des polices qui facilitent la lecture tout en étant visuellement distinctes pour les titres et le corps du texte.
+
+Polices recommandées :
+Titre (h1, h2, h3) :
+
+Poppins, sans-serif.
+Style : Bold (700) pour les titres majeurs.
+Usage : Titres des sections, CTA, et en-têtes. Cette police est moderne et transmet une énergie positive.
+Texte principal (paragraphe) :
+
+Roboto, sans-serif.
+Style : Regular (400) ou Medium (500).
+Usage : Pour le corps du texte et les paragraphes. Roboto est une police simple, lisible et adaptée à tous les écrans.
+Sous-titres ou éléments secondaires :
+
+Open Sans, sans-serif.
+Style : Regular (400), Italic pour les éléments d’emphase.
+Usage : Pour les sous-titres, les annotations et les éléments discrets.
+Hiérarchie typographique :
+H1 (Titre principal) : 48px, Bold, couleur principale (Vert forêt).
+H2 (Sous-titres de section) : 36px, Bold, couleur secondaire (Gris anthracite).
+H3 (Sous-sections) : 24px, Regular, couleur principale ou secondaire selon le contexte.
+Texte standard (paragraphe) : 16px, Regular, couleur gris anthracite.
+Texte sur boutons : 16px, Bold, en majuscule si nécessaire.
+3. Iconographie et Images
+Les icônes et images doivent renforcer le sentiment d'aventure et de progression, tout en restant simples et compréhensibles.
+
+Style des icônes :
+Lignes fines et minimalistes pour les icônes : Utiliser des packs d'icônes modernes comme Feather Icons ou Material Icons, qui sont sobres et facilement reconnaissables.
+Couleur des icônes : Vert forêt ou bleu ciel pour les icônes actives. Le gris anthracite pour les icônes plus discrètes (menu secondaire, footer, etc.).
+Style des images :
+Les images doivent évoquer l’aventure, l’apprentissage et la progression. Utilise des photos naturelles, comme des sentiers, des paysages, et des scènes évoquant la découverte.
+Les illustrations peuvent aussi être intégrées pour représenter des étapes d'apprentissage, comme un sentier avec des panneaux indicatifs.
+Format :
+Préférer des images SVG pour les icônes et éléments graphiques afin de garantir une mise à l'échelle sans perte de qualité.
+Les images décoratives peuvent être en JPEG ou PNG, mais doivent être optimisées pour ne pas ralentir le site.
+4. Boutons et CTA (Call to Action)
+Les boutons doivent être bien visibles et inciter à l’action tout en respectant la palette de couleurs.
+
+Style des boutons principaux :
+Couleur : Vert forêt (#4CAF50) pour les boutons primaires (inscription, démarrage de quiz, etc.).
+Texte : Blanc, en majuscule, avec une police en Bold.
+Effet au survol (hover) : Changement de couleur en une teinte plus foncée de vert (#388E3C), avec une légère ombre pour donner un effet de profondeur.
+Style des boutons secondaires :
+Couleur : Bleu ciel clair (#81D4FA).
+Texte : Gris anthracite.
+Effet au survol : Changement de teinte à un bleu légèrement plus foncé.
+5. Layout (Mise en page)
+La mise en page doit être aérée, fluide, et adaptée à tous les écrans (responsive design). Le contenu doit être organisé de manière à être facilement lisible, avec un accent mis sur la progression logique de l'information.
+
+Structure :
+Grille de mise en page : Utiliser une grille en 12 colonnes, avec des marges généreuses pour assurer une bonne lisibilité.
+Sections bien distinctes : Chaque section doit être clairement délimitée avec des arrière-plans de couleurs différentes (gris clair pour les sections secondaires, blanc pour les sections principales).
+Espacement : Utiliser des espaces suffisants entre les paragraphes, les titres, et les images pour ne pas surcharger visuellement la page.
+6. Animations et interactions
+Les interactions doivent être subtiles mais offrir un retour visuel aux utilisateurs, renforçant ainsi l’aspect engageant de la plateforme.
+
+Effets recommandés :
+Boutons : Utiliser des transitions douces (200-300ms) pour les changements de couleur ou d’ombre au survol.
+Badges et récompenses : Lorsqu’un utilisateur gagne un badge ou franchit une étape, une animation légère de pop-up ou de rotation peut être intégrée pour marquer le moment.
+Progress bar (Barre de progression) : Pour les quiz ou les étapes d’apprentissage, afficher une barre de progression qui se remplit au fur et à mesure, avec des couleurs progressant de l’orange à un vert vif.

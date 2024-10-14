@@ -1,0 +1,1 @@
+  apiKey: "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", // Remplacez par votre clé API OpenAI"", // Remplacez par votre clé API OpenAI

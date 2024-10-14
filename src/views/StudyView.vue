@@ -1,232 +1,391 @@
 <template>
-    <div class="container">
-      <h1>Liste des Quizzes</h1>
-  
-      <!-- Category Filter Section -->
-      <div class="filters">
-        <div class="filter-group">
-          <p>Filtrer par catégorie principale:</p>
-          <select v-model="selectedMainCategory" @change="onMainCategoryChange">
-            <option disabled value="">Sélectionnez une catégorie</option>
-            <option v-for="(category, index) in categories" :key="index">{{ category.main_category }}</option>
-          </select>
-        </div>
-  
-        <div v-if="subCategories.length > 0" class="filter-group">
-          <p>Filtrer par sous-catégorie:</p>
-          <select v-model="selectedSubCategory" @change="onSubCategoryChange">
-            <option disabled value="">Sélectionnez une sous-catégorie</option>
-            <option v-for="(subCat, index) in subCategories" :key="index">{{ subCat.name }}</option>
-          </select>
-        </div>
-  
-        <div v-if="preciseCategories.length > 0" class="filter-group">
-          <p>Filtrer par catégorie précise:</p>
-          <select v-model="selectedPreciseCategory">
-            <option disabled value="">Sélectionnez une catégorie précise</option>
-            <option v-for="(preciseCat, index) in preciseCategories" :key="index">{{ preciseCat }}</option>
-          </select>
-        </div>
+  <div class="container">
+    <header class="hero">
+      <div class="hero-content">
+        <h1 class="heading-primary">Parcours de Quiz</h1>
+        <p>Choisissez un quiz parmi les catégories disponibles et commencez votre parcours d'étude.</p>
       </div>
-  
-      <!-- Quiz List -->
-      <div v-if="filteredQuizzes.length > 0" class="quiz-list">
-        <h2>Your Quizzes</h2>
-        <ul>
-          <li v-for="(quiz, index) in filteredQuizzes" :key="index" class="quiz-item">
-            <button @click="viewQuiz(quiz.id)">{{ quiz.name }}</button>
-          </li>
-        </ul>
+    </header>
+
+    <!-- Category Filter Section -->
+    <div class="filters">
+      <div class="filter-group">
+        <p>Filtrer par catégorie principale :</p>
+        <select v-model="selectedMainCategory" @change="fetchQuizzesForMainCategory">
+          <option disabled value="">Sélectionnez une catégorie</option>
+          <option v-for="(category, index) in categories" :key="index">{{ category.main_category }}</option>
+        </select>
       </div>
-      <div v-else>
-        <p>Pas de quizzes disponibles.</p>
+
+      <div v-if="subCategories.length > 0" class="filter-group">
+        <p>Filtrer par sous-catégorie :</p>
+        <select v-model="selectedSubCategory" @change="fetchQuizzesForSubCategory">
+          <option disabled value="">Sélectionnez une sous-catégorie</option>
+          <option v-for="(subCat, index) in subCategories" :key="index">{{ subCat.name }}</option>
+        </select>
+      </div>
+
+      <div v-if="preciseCategories.length > 0" class="filter-group">
+        <p>Filtrer par catégorie précise :</p>
+        <select v-model="selectedPreciseCategory" @change="fetchQuizzesForPreciseCategory">
+          <option disabled value="">Sélectionnez une catégorie précise</option>
+          <option v-for="(preciseCat, index) in preciseCategories" :key="index">{{ preciseCat }}</option>
+        </select>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import {  ref, onValue } from 'firebase/database';
-  import {  database } from '../firebase';  // Import the getCurrentUser function from firebase.js
 
-  export default {
-    data() {
-      return {
-        quizzes: [],             // Liste des quizzes depuis Firebase
-        filteredQuizzes: [],     // Liste des quizzes filtrés
-        categories: [],          // Liste des catégories principales
-        subCategories: [],       // Liste des sous-catégories
-        preciseCategories: [],   // Liste des catégories précises
-        selectedMainCategory: '',// Catégorie principale sélectionnée
-        selectedSubCategory: '', // Sous-catégorie sélectionnée
-        selectedPreciseCategory: '' // Catégorie précise sélectionnée
-      };
+    <!-- Quiz List -->
+    <div v-if="paginatedQuizzes.length > 0" class="quiz-list">
+      <h2>Quizzes disponibles</h2>
+      <ul>
+        <li v-for="(quiz, index) in paginatedQuizzes" :key="index" class="quiz-item">
+          <button @click="viewQuiz(quiz.id)" class="quiz-button">
+            <i class="fas fa-mountain"></i> <!-- Icon representing quiz as a journey -->
+            {{ quiz.theme }}
+          </button>
+        </li>
+      </ul>
+
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        <button v-if="currentPage > 1" @click="changePage(1)">« Première</button>
+        <button v-if="currentPage > 5" @click="changePage(currentPage - 5)">« -5</button>
+        <button v-if="currentPage > 10" @click="changePage(currentPage - 10)">« -10</button>
+        <button v-if="currentPage > 25" @click="changePage(currentPage - 25)">« -25</button>
+
+        <button
+          v-for="page in visiblePages"
+          :key="page"
+          @click="changePage(page)"
+          :class="{ 'active': page === currentPage }"
+        >
+          {{ page }}
+        </button>
+
+        <button v-if="currentPage + 5 <= totalPages" @click="changePage(currentPage + 5)">+5 »</button>
+        <button v-if="currentPage + 10 <= totalPages" @click="changePage(currentPage + 10)">+10 »</button>
+        <button v-if="currentPage + 25 <= totalPages" @click="changePage(currentPage + 25)">+25 »</button>
+
+        <button v-if="currentPage < totalPages" @click="changePage(totalPages)">Dernière »</button>
+      </div>
+    </div>
+
+    <div v-else>
+      <p>Aucun quiz disponible pour cette catégorie.</p>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref, onValue } from 'firebase/database';
+import { database } from '../firebase';
+
+export default {
+  data() {
+    return {
+      quizzes: [], // List of all quizzes from Firebase
+      filteredQuizzes: [], // Quizzes filtered by selected categories
+      categories: [], // Main categories
+      subCategories: [], // Subcategories
+      preciseCategories: [], // Precise categories
+      selectedMainCategory: '', // Selected main category
+      selectedSubCategory: '', // Selected subcategory
+      selectedPreciseCategory: '', // Selected precise category
+      quizzesPerPage: 10, // Quizzes per page
+      currentPage: 1, // Current page
+      visiblePageCount: 5, // Number of pages visible in pagination
+    };
+  },
+  computed: {
+    paginatedQuizzes() {
+      const start = (this.currentPage - 1) * this.quizzesPerPage;
+      const end = start + this.quizzesPerPage;
+      return this.filteredQuizzes.slice(start, end);
     },
-    methods: {
-      viewQuiz(quizId) {
-        this.$router.push({ name: 'QuizDetails', params: { id: quizId } });
-      },
-      onMainCategoryChange() {
-        // Filtrer les sous-catégories basées sur la catégorie principale
-        const selectedCategory = this.categories.find(cat => cat.main_category === this.selectedMainCategory);
-        this.subCategories = selectedCategory ? selectedCategory.sub_categories : [];
-        this.selectedSubCategory = '';
-        this.preciseCategories = [];
-        this.selectedPreciseCategory = '';
-        this.filterQuizzes(); // Apply filtering
-      },
-      onSubCategoryChange() {
-        // Filtrer les catégories précises basées sur la sous-catégorie
-        const selectedSubCat = this.subCategories.find(subCat => subCat.name === this.selectedSubCategory);
-        this.preciseCategories = selectedSubCat ? selectedSubCat.precise_categories : [];
-        this.selectedPreciseCategory = '';
-        this.filterQuizzes(); // Apply filtering
-      },
-      filterQuizzes() {
-        // Filtrer les quizzes en fonction des catégories sélectionnées
-        this.filteredQuizzes = this.quizzes.filter(quiz => {
-          // Vérification si le quiz a une catégorie définie avant de tenter d'y accéder
-          const hasCategory = quiz.category && quiz.category.main;
-          if (!hasCategory) {
-            return false; // Si pas de catégorie, on ignore ce quiz
-          }
-          const matchMain = this.selectedMainCategory ? quiz.category.main === this.selectedMainCategory : true;
-          const matchSub = this.selectedSubCategory ? quiz.category.sub === this.selectedSubCategory : true;
-          const matchPrecise = this.selectedPreciseCategory ? quiz.category.precise === this.selectedPreciseCategory : true;
-          return matchMain && matchSub && matchPrecise;
-        });
+    totalPages() {
+      return Math.ceil(this.filteredQuizzes.length / this.quizzesPerPage);
+    },
+    visiblePages() {
+      const startPage = Math.max(1, this.currentPage - Math.floor(this.visiblePageCount / 2));
+      const endPage = Math.min(this.totalPages, startPage + this.visiblePageCount - 1);
+      const pages = [];
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      return pages;
+    },
+  },
+  methods: {
+    changePage(page) {
+      if (page > 0 && page <= this.totalPages) {
+        this.currentPage = page;
       }
     },
-    created() {
-      const db = database;
-      
-      // Charger les quizzes depuis Firebase
-      const quizzesRef = ref(db, 'quizzes');
-      onValue(quizzesRef, (snapshot) => {
-        const quizzesData = snapshot.val();
-        this.quizzes = [];
-        if (quizzesData) {
-          Object.entries(quizzesData).forEach(([, userQuizzes]) => {
-            Object.entries(userQuizzes).forEach(([quizId, quiz]) => {
-              // Si un quiz n'a pas de catégorie définie, ignorer cette entrée
-              if (quiz.category) {
-                this.quizzes.push({ ...quiz, id: quizId });
-              }
+    viewQuiz(quizId) {
+      this.$router.push({ name: 'QuizDetails', params: { id: quizId } });
+    },
+    fetchQuizzesForMainCategory() {
+      this.filteredQuizzes = [];
+      this.subCategories = [];
+      this.preciseCategories = [];
+
+      const mainCategory = this.selectedMainCategory;
+
+      if (mainCategory) {
+        // Fetch quizzes for the selected main category
+        const quizzesRef = ref(database, `quizzs2/${mainCategory}`);
+        onValue(quizzesRef, (snapshot) => {
+          const quizzesData = snapshot.val();
+          if (quizzesData) {
+            this.filteredQuizzes = [];
+            Object.entries(quizzesData).forEach(([subCategoryName, preciseCategoriesObj]) => {
+              Object.entries(preciseCategoriesObj).forEach(([preciseCategoryName, quizObj]) => {
+                Object.entries(quizObj).forEach(([quizId, quiz]) => {
+                  this.filteredQuizzes.push({
+                    ...quiz,
+                    id: quizId,
+                    category: { main: mainCategory, sub: subCategoryName, precise: preciseCategoryName }
+                  });
+                });
+              });
             });
-          });
-        }
-        this.filteredQuizzes = this.quizzes; // Set filtered quizzes initially
-      });
-  
-      // Charger les catégories depuis Firebase
-      const categoriesRef = ref(db, 'category');
-      onValue(categoriesRef, (snapshot) => {
-        const categoriesData = snapshot.val();
-        this.categories = categoriesData ? categoriesData.categories : [];
-      });
+            this.currentPage = 1;
+          }
+        });
+
+        // Set subcategories based on the selected main category
+        const selectedCategory = this.categories.find(cat => cat.main_category === this.selectedMainCategory);
+        this.subCategories = selectedCategory ? selectedCategory.sub_categories : [];
+      }
+    },
+    fetchQuizzesForSubCategory() {
+      this.filteredQuizzes = [];
+      this.preciseCategories = [];
+
+      const mainCategory = this.selectedMainCategory;
+      const subCategory = this.selectedSubCategory;
+
+      if (mainCategory && subCategory) {
+        // Fetch quizzes for the selected subcategory
+        const quizzesRef = ref(database, `quizzs2/${mainCategory}/${subCategory}`);
+        onValue(quizzesRef, (snapshot) => {
+          const quizzesData = snapshot.val();
+          if (quizzesData) {
+            this.filteredQuizzes = [];
+            Object.entries(quizzesData).forEach(([preciseCategoryName, quizObj]) => {
+              Object.entries(quizObj).forEach(([quizId, quiz]) => {
+                this.filteredQuizzes.push({
+                  ...quiz,
+                  id: quizId,
+                  category: { main: mainCategory, sub: subCategory, precise: preciseCategoryName }
+                });
+              });
+            });
+            this.currentPage = 1;
+          }
+        });
+
+        // Set precise categories based on the selected subcategory
+        const selectedSubCat = this.subCategories.find(subCat => subCat.name === this.selectedSubCategory);
+        this.preciseCategories = selectedSubCat ? selectedSubCat.precise_categories : [];
+      }
+    },
+    fetchQuizzesForPreciseCategory() {
+      this.filteredQuizzes = [];
+
+      const mainCategory = this.selectedMainCategory;
+      const subCategory = this.selectedSubCategory;
+      const preciseCategory = this.selectedPreciseCategory;
+
+      if (mainCategory && subCategory && preciseCategory) {
+        // Fetch quizzes for the selected precise category
+        const quizzesRef = ref(database, `quizzs2/${mainCategory}/${subCategory}/${preciseCategory}`);
+        onValue(quizzesRef, (snapshot) => {
+          const quizzesData = snapshot.val();
+          if (quizzesData) {
+            this.filteredQuizzes = [];
+            Object.entries(quizzesData).forEach(([quizId, quiz]) => {
+              this.filteredQuizzes.push({
+                ...quiz,
+                id: quizId,
+                category: { main: mainCategory, sub: subCategory, precise: preciseCategory }
+              });
+            });
+            this.currentPage = 1;
+          }
+        });
+      }
     }
-  };
-  </script>
-  
-  <style scoped>
+  },
+  created() {
+    // Fetch categories once when the component is created
+    const categoriesRef = ref(database, 'category');
+    onValue(categoriesRef, (snapshot) => {
+      const categoriesData = snapshot.val();
+      this.categories = categoriesData ? categoriesData.categories : [];
+    });
+  }
+};
+</script>
+
+<style scoped>.container {
+  max-width: 900px;
+  margin: 0 auto; /* Center the container */
+  padding: 30px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.1);
+  text-align: center; /* Center all text inside the container */
+}
+
+/* Hero Section */
+.hero {
+  margin-bottom: 30px;
+  background-color: #0288D1;
+  padding: 40px;
+  border-radius: 12px;
+  color: white;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.hero p {
+  font-size: 18px;
+  margin-bottom: 0; /* Ensure the spacing is consistent */
+}
+
+/* Filters */
+.filters {
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column; /* Make the filter groups stacked */
+  align-items: center;
+  gap: 20px;
+}
+
+.filter-group {
+  width: 80%; /* Center-align filter dropdowns */
+  max-width: 600px; /* Limit the max width for better alignment */
+}
+
+.filter-group p {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 8px;
+  text-align: left; /* Align text inside filter group */
+}
+
+select {
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  background-color: #fff;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+select:focus {
+  border-color: #4CAF50;
+  box-shadow: inset 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+/* Quiz list styles */
+.quiz-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left; /* Align quiz list text */
+}
+
+.quiz-item {
+  margin-bottom: 20px;
+}
+
+.quiz-button {
+  padding: 12px 30px;
+  background-color: #FF7043;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.quiz-button:hover {
+  background-color: #E64A19;
+  box-shadow: 0px 6px 12px rgba(255, 112, 67, 0.2);
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  gap: 5px; /* Add some spacing between buttons */
+}
+
+.pagination button {
+  padding: 8px 12px;
+  margin: 5px;
+  background-color: #81D4FA;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pagination button:hover {
+  background-color: #0288D1;
+  box-shadow: 0px 4px 8px rgba(0, 123, 255, 0.2);
+}
+
+.pagination button.active {
+  background-color: #0288D1;
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   .container {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 30px;
-    background-color: #f0f4f8;
-    border-radius: 12px;
-    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
   }
-  
-  h1 {
-    text-align: center;
-    font-size: 36px;
-    color: #333;
-    margin-bottom: 30px;
-    font-weight: bold;
+
+  .hero h1 {
+    font-size: 28px;
   }
-  
-  .filters {
-    margin-bottom: 30px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: space-between;
-  }
-  
+
   .filter-group {
-    width: 100%;
+    width: 90%;
   }
-  
-  .filter-group p {
-    font-size: 18px;
-    color: #555;
-    margin-bottom: 8px;
+
+  .pagination button {
+    padding: 6px 10px;
+    font-size: 14px;
   }
-  
-  select {
-    padding: 12px;
-    width: 100%;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-    background-color: #fff;
-    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    gap: 3px;
   }
-  
-  select:focus {
-    border-color: #007bff;
-    box-shadow: inset 0 2px 8px rgba(0, 123, 255, 0.2);
+
+  .pagination button {
+    padding: 5px 8px;
+    font-size: 12px;
   }
-  
-  /* Quiz list styles */
-  .quiz-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .quiz-item {
-    margin-bottom: 20px;
-  }
-  
-  .quiz-item button {
-    padding: 12px 30px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 8px;
-    border: none;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
-    text-align: left;
-  }
-  
-  .quiz-item button:hover {
-    background-color: #0056b3;
-    box-shadow: 0px 6px 12px rgba(0, 123, 255, 0.2);
-  }
-  
-  /* Responsive design */
-  @media (max-width: 768px) {
-    .container {
-      padding: 20px;
-    }
-  
-    .filters {
-      flex-direction: column;
-      gap: 15px;
-    }
-  
-    h1 {
-      font-size: 30px;
-    }
-  
-    .quiz-item button {
-      font-size: 14px;
-    }
-  }
-  </style>
-  
+}
+
+</style>

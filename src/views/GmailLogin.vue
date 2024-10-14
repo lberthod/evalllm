@@ -12,18 +12,19 @@
 
     <!-- Login buttons -->
     <div class="login-options">
+      <!-- Login options visible based on user's login state -->
       <button v-if="!user" @click="loginAnonymously" class="btn anonymous">Login Anonymously</button>
-      <button v-if="!user || isAnonymous" @click="loginWithGoogle" class="btn google">
-        Login with Google
-      </button>
-      <button v-else @click="logout" class="btn logout">Logout</button>
+      <button v-if="!user || isAnonymous" @click="loginWithGoogle" class="btn google">Login with Google</button>
+      
+      <!-- Logout button always visible -->
+      <button @click="logout" class="btn logout">Logout</button>
     </div>
   </div>
 </template>
 
 <script>
-import {  signOut, signInAnonymously } from 'firebase/auth';
-import { signInWithGoogle, getCurrentUser ,auth} from '../firebase';
+import { signOut, signInAnonymously } from 'firebase/auth';
+import { signInWithGoogle, getCurrentUser, auth } from '../firebase';
 
 export default {
   name: 'GmailLogin',
@@ -34,7 +35,7 @@ export default {
     };
   },
   created() {
-    // Vérifier si un utilisateur est connecté au chargement du composant
+    // Check if a user is already logged in when the component is created
     this.user = getCurrentUser();
 
     // Update isAnonymous flag
@@ -52,8 +53,8 @@ export default {
     async loginWithGoogle() {
       try {
         await signInWithGoogle();
-        this.user = getCurrentUser(); // Mettre à jour l'utilisateur après la connexion
-        this.isAnonymous = false; // Once logged in with Google, it's not anonymous anymore
+        this.user = getCurrentUser(); // Update the user after successful login
+        this.isAnonymous = false; // No longer anonymous after Google login
         this.$router.push('/profile');
       } catch (error) {
         console.error('Login failed:', error);
@@ -62,8 +63,8 @@ export default {
     async loginAnonymously() {
       try {
         await signInAnonymously(auth);
-        this.user = getCurrentUser();
-        this.isAnonymous = true; // Mark as anonymous login
+        this.user = getCurrentUser(); // Update the user after anonymous login
+        this.isAnonymous = true;
       } catch (error) {
         console.error('Anonymous login failed:', error);
       }
@@ -71,7 +72,7 @@ export default {
     async logout() {
       try {
         await signOut(auth);
-        this.user = null; // Mettre à jour l'état de l'utilisateur après la déconnexion
+        this.user = null; // Clear user data after logout
         this.isAnonymous = false;
       } catch (error) {
         console.error('Logout failed:', error);

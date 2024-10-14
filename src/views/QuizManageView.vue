@@ -1,24 +1,37 @@
 <template>
-  <div class="container">
-    <h1>Gestion des Quizzes</h1>
-    
-    <div class="button-group">
+  <div class="quiz-management-container">
+    <!-- Hero Section for Quiz Management -->
+    <header class="hero">
+      <div class="hero-content">
+        <h1>Dashboard</h1>
+        <p>Créez et gérez vos quizzes avec facilité, et suivez votre progression pédagogique.</p>
+        <div class="rope"></div> <!-- Corde pour l'effet -->
+      </div>
+    </header>
+
+    <!-- Button Group for switching views -->
+    <section class="button-group">
       <button 
         :class="{'active': currentView === 'QuizPage'}" 
         @click="currentView = 'QuizPage'"
+        class="cta-button with-rope"
       >
         Créer un Quiz
       </button>
       <button 
         :class="{'active': currentView === 'QuizView'}" 
         @click="currentView = 'QuizView'"
+        class="cta-button with-rope"
       >
         Voir vos Quizzes
       </button>
-    </div>
+      <div class="rope"></div> <!-- Corde pour l'effet -->
+    </section>
 
-    <!-- Switch between different views (QuizPage, QuizView, EditQuizComponent) -->
-    <component :is="currentView" :selected-quiz="selectedQuiz" @edit-quiz="handleEditQuiz"></component>
+    <!-- Display different views -->
+    <section class="view-section">
+      <component :is="currentView" :selected-quiz="selectedQuiz" @edit-quiz="handleEditQuiz"></component>
+    </section>
   </div>
 </template>
 
@@ -48,84 +61,132 @@ export default {
   }
 };
 </script>
+
 <style scoped>
-/* Container for the quiz management page */
-.container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 30px;
-  background-color: #f9f9f9;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+/* Main Container */
+.quiz-management-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
   text-align: center;
 }
 
-/* Page title */
-h1 {
-  font-size: 36px;
-  color: #333;
-  margin-bottom: 30px;
+/* Hero Section */
+.hero {
+  background-image: url('@/assets/back.png'); /* Image de fond */
+  background-size: cover;
+  background-position: center;
+  padding: 100px 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  border-radius: 12px;
+  margin-bottom: 50px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+.hero h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
   font-weight: bold;
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Form input fields */
-input, select {
-  width: 70%; /* Increase width to make inputs wider */
-  padding: 12px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
+.hero p {
+  font-size: 20px;
+  margin-bottom: 30px;
 }
 
-/* Button styles */
-button {
-  padding: 12px 30px;
+/* Button Group */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.cta-button {
+  padding: 15px 35px;
   font-size: 18px;
-  background-color: #007bff;
+  background-color: #FF7043; /* Orange chaleureux */
   color: white;
   border-radius: 8px;
   border: none;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
   transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-  font-weight: 600;
 }
 
-/* Active button styles */
-button.active {
-  background-color: #0056b3;
-  box-shadow: 0px 6px 12px rgba(0, 123, 255, 0.3);
-}
-
-/* Hover effect for buttons */
-button:hover {
-  background-color: #0056b3;
-  box-shadow: 0px 8px 16px rgba(0, 123, 255, 0.2);
+.cta-button:hover {
+  background-color: #E64A19;
+  box-shadow: 0px 8px 16px rgba(255, 112, 67, 0.3);
   transform: translateY(-2px);
 }
 
-/* Form group and responsive tweaks */
-.form-group {
-  margin-bottom: 25px;
+.with-rope {
+  position: relative;
 }
 
-/* Responsive design */
+/* Rope animation */
+.rope {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 4px;
+  background-color: #FF7043; /* Same as button color */
+  width: 0;
+  transition: width 0.4s ease-in-out, transform 0.2s ease;
+  transform-origin: left;
+}
+
+.cta-button:active ~ .rope {
+  width: 100%;
+  transform: translateX(-50%) rotate(10deg);
+  animation: wiggle 0.5s ease infinite;
+}
+
+/* Wiggle animation for the rope */
+@keyframes wiggle {
+  0%, 100% {
+    transform: translateX(-50%) rotate(10deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(-10deg);
+  }
+}
+
+/* View Section */
+.view-section {
+  margin-top: 40px;
+  text-align: center;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .container {
-    padding: 20px;
+  .hero h1 {
+    font-size: 36px;
   }
 
-  h1 {
-    font-size: 30px;
+  .hero p {
+    font-size: 18px;
   }
 
-  input, select {
-    width: 100%; /* Full width on mobile devices */
-  }
-
-  button {
+  .cta-button {
     font-size: 16px;
-    padding: 10px 25px;
+    padding: 12px 30px;
   }
 
   .button-group {

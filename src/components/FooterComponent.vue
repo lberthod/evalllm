@@ -2,13 +2,17 @@
 <template>
     <footer class="footer">
       <div class="footer-content">
-        <p>&copy; 2024 Eval LLM. Tous droits réservés.</p>
+        <p>&copy; 2024 QuizTrailo. Tous droits réservés.</p>
         <div class="footer-links">
           <a href="/contact">Contact</a>
           <a href="/about">À propos</a>
-          <a href="/terms">Mentions légales</a>
+          <a href="/study">Study </a>
+          <a href="/quiz-manage">Dashboard</a>
+          <a href="/login"> Login</a>
+          <a href="/profile"> Profile</a>
           <a href="https://twitter.com" target="_blank">Twitter</a>
           <a href="https://facebook.com" target="_blank">Facebook</a>
+
         </div>
       </div>
     </footer>

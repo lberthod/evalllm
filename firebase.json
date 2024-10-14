@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "quiztrailo",
     "public": "dist", // Remplace 'dist' par le dossier où est buildé ton projet Vue.js
     "ignore": [
       "firebase.json",

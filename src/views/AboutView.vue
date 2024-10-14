@@ -1,71 +1,54 @@
 <template>
   <div class="about-container">
-    <!-- Hero section with parallax background color -->
-    <section class="about-hero element" :style="{ backgroundPositionY: heroParallaxPosition + 'px' }">
-      <h1>À propos de Eval LLM</h1>
-      <p>
-        Eval LLM est une plateforme interactive qui transforme l'apprentissage en une expérience engageante et personnalisée. Découvrez comment nos technologies et nos approches pédagogiques peuvent améliorer votre apprentissage !
-      </p>
-    </section>
+    <!-- Hero Section -->
+    <header class="hero">
+      <div class="hero-content">
+        <h1>À propos de Eval LLM</h1>
+        <p>
+          Eval LLM est une plateforme interactive qui transforme l'apprentissage en une expérience engageante et
+          personnalisée. Découvrez comment nos technologies et nos approches pédagogiques peuvent améliorer votre
+          apprentissage !
+        </p>
+        <button @click="startQuiz" class="cta-button with-rope">Commencez votre aventure</button>
+        <div class="rope"></div> <!-- Corde pour l'effet -->
+      </div>
+    </header>
 
-    <!-- Pedagogical approach section with background color -->
-    <section class="about-section about-pedagogy element" :style="{ backgroundPositionY: pedagogyParallaxPosition + 'px' }">
-      <div class="content-container">
+    <!-- Features Section -->
+    <section class="features">
+      <div class="feature">
         <h2>Notre approche pédagogique</h2>
         <p>
-          Chez Eval LLM, nous plaçons l'apprenant au cœur de l'expérience grâce à des quiz interactifs. Notre approche repose sur l’apprentissage actif avec un feedback immédiat, généré par des modèles de langage tels que GPT, pour améliorer la compréhension de chaque utilisateur.
+          Chez Eval LLM, nous plaçons l'apprenant au cœur de l'expérience grâce à des quiz interactifs. Notre approche
+          repose sur l’apprentissage actif avec un feedback immédiat, généré par des modèles de langage tels que GPT,
+          pour améliorer la compréhension de chaque utilisateur.
         </p>
-        <ul class="highlighted-points">
-          <li>Apprentissage personnalisé grâce à des feedbacks intelligents.</li>
-          <li>Rétention renforcée via des quiz interactifs et motivants.</li>
-          <li>Adaptation continue des quiz selon votre progression.</li>
-        </ul>
+      </div>
+      <div class="feature">
+        <h2>Pour qui est fait Eval LLM ?</h2>
+        <p>
+          Eval LLM s'adresse aux enseignants, étudiants et curieux qui souhaitent enrichir leurs connaissances de manière
+          interactive et personnalisée.
+        </p>
+      </div>
+      <div class="feature">
+        <h2>Technologies et approche utilisateur</h2>
+        <p>
+          Au cœur de Eval LLM se trouve une intelligence artificielle avancée basée sur un modèle de langage (LLM).
+          Actuellement, nous utilisons GPT-4.0 Mini, qui permet d'analyser les réponses et d'offrir un feedback
+          personnalisé en temps réel.
+        </p>
       </div>
     </section>
 
-    <!-- User section with image parallax effect -->
-    <section class="about-section user-section element" :style="{ backgroundPositionY: imageParallaxPosition + 'px' }">
-      <h2>Pour qui est fait Eval LLM ?</h2>
-      <div class="user-grid">
-        <div class="user-item">
-          <h3>Enseignants</h3>
-          <p>Créez et partagez des quiz avec vos élèves et suivez leur progression en temps réel.</p>
-        </div>
-        <div class="user-item">
-          <h3>Étudiants</h3>
-          <p>Répondez aux questions à votre rythme et recevez des feedbacks instantanés pour améliorer vos compétences.</p>
-        </div>
-        <div class="user-item">
-          <h3>Curieux</h3>
-          <p>Accédez à des quiz publics pour découvrir et approfondir vos connaissances sur divers sujets.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Technologies section with parallax background -->
-    <section class="about-section about-tech element" :style="{ backgroundPositionY: techParallaxPosition + 'px' }">
-      <h2 class="tech-title">Technologies et Approche Utilisateur</h2>
-      <div class="tech-content">
-        <p>
-          Eval LLM est pensé pour offrir une expérience utilisateur ergonomique et réactive, aussi bien sur le web que sur mobile. L'interface fluide permet une navigation intuitive et un apprentissage efficace, s'adaptant aux besoins spécifiques de chaque utilisateur.
-        </p>
-        <p>
-          Au cœur de Eval LLM se trouve une intelligence artificielle avancée basée sur un modèle de langage (LLM). Actuellement, nous utilisons **GPT-4.0 Mini**, qui permet d'analyser les réponses et d'offrir un feedback personnalisé en temps réel. Ce retour intelligent permet à chaque utilisateur de progresser à son propre rythme, avec des suggestions adaptées à son niveau de compréhension.
-        </p>
-        <p>
-          Grâce à ces technologies, Eval LLM permet d'améliorer l'apprentissage de manière dynamique et engageante, tout en assurant un environnement intuitif et facile à utiliser pour tout type d'utilisateur.
-        </p>
-        <div class="tech-icons">
-          <img src="@/assets/logo.png" alt="GPT-4.0 Mini">
-        </div>
-      </div>
-    </section>
-
-    <!-- Call to action section with a solid color background -->
-    <section class="about-section call-to-action element">
+    <!-- Call to Action Section -->
+    <section class="call-to-action">
       <h2>Prêt à explorer ?</h2>
-      <p>Rejoignez Eval LLM dès aujourd'hui et plongez dans une expérience d'apprentissage enrichissante et interactive !</p>
-      <button @click="startQuiz">Commencez maintenant</button>
+      <p>
+        Rejoignez Eval LLM dès aujourd'hui et plongez dans une expérience d'apprentissage enrichissante et interactive !
+      </p>
+      <button @click="startQuiz" class="cta-button with-rope">Commencez maintenant</button>
+      <div class="rope"></div> <!-- Corde pour l'effet -->
     </section>
   </div>
 </template>
@@ -73,187 +56,153 @@
 <script>
 export default {
   name: "AboutView",
-  data() {
-    return {
-      heroParallaxPosition: 0,
-      pedagogyParallaxPosition: 0,
-      imageParallaxPosition: 0,
-      techParallaxPosition: 0,
-    };
-  },
   methods: {
     startQuiz() {
       this.$router.push('/study');
     },
-    handleScroll() {
-      this.heroParallaxPosition = window.scrollY * 0.4;
-      this.pedagogyParallaxPosition = window.scrollY * 0.3;
-      this.imageParallaxPosition = window.scrollY * 0.5;
-      this.techParallaxPosition = window.scrollY * 0.2;
-    },
-  },
-  mounted() {
-    window.addEventListener("scroll", this.handleScroll);
-    window.addEventListener('scroll', () => {
-      document.querySelectorAll('.element').forEach(el => {
-        if (el.getBoundingClientRect().top < window.innerHeight - 100) {
-          el.classList.add('visible');
-        }
-      });
-    });
-  },
-  beforeUnmount() {
-    window.removeEventListener("scroll", this.handleScroll);
   },
 };
 </script>
 
 <style scoped>
-/* General container for the page */
+/* Main Container */
 .about-container {
-  font-family: 'Poppins', sans-serif;
-  line-height: 1.6;
-  color: #444;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
   text-align: center;
 }
 
-/* Hero section with parallax background */
-.about-hero {
-  background: linear-gradient(135deg, #00bcd4, #007bff);
-  color: white;
-  padding: 80px 30px;
-  border-radius: 20px;
-  position: relative;
-  background-attachment: fixed;
+/* Hero Section */
+.hero {
+  background-image: url('@/assets/back.png'); /* Image de fond personnalisée */
+  background-size: cover;
   background-position: center;
-  background-size: cover;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  padding: 100px 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  border-radius: 12px;
+  margin-bottom: 50px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.about-hero h1 {
-  font-size: 50px;
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: -1;
+}
+
+.hero h1 {
+  font-size: 48px;
   margin-bottom: 20px;
-  font-weight: 600;
+  font-weight: bold;
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.about-hero p {
+.hero p {
   font-size: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  margin-bottom: 30px;
 }
 
-/* Pedagogical section with background color */
-.about-pedagogy {
-  background-color: #f0f4f8;
-  padding: 60px 30px;
-  border-radius: 20px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-}
-
-.about-pedagogy h2 {
-  font-size: 36px;
-  font-weight: 600;
-}
-
-.highlighted-points {
-  list-style-type: none;
-  padding: 0;
-  margin-top: 20px;
-}
-
-.highlighted-points li {
+/* CTA Button */
+.cta-button {
+  padding: 15px 35px;
   font-size: 18px;
-  color: #007bff;
-  margin: 10px 0;
-}
-
-/* Element animation */
-.element {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-}
-
-.element.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* User section with parallax background image */
-.user-section {
-  background: url('@/assets/back.png') no-repeat center center fixed;
-  background-size: cover;
-  padding: 100px 30px;
+  background-color: #FF7043;
   color: white;
-  border-radius: 20px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.user-section h2 {
-  font-size: 36px;
-  margin-bottom: 40px;
+.cta-button:hover {
+  background-color: #E64A19;
+  box-shadow: 0px 8px 16px rgba(255, 112, 67, 0.3);
 }
 
-.user-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  justify-content: center;
+.with-rope {
+  position: relative;
 }
 
-.user-item {
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 30px;
-  border-radius: 20px;
-  color: #333;
-  transition: transform 0.3s ease;
+/* Rope animation */
+.rope {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 4px;
+  background-color: #FF7043; /* Même couleur que le bouton */
+  width: 0;
+  transition: width 0.4s ease-in-out, transform 0.2s ease;
+  transform-origin: left;
 }
 
-.user-item:hover {
-  transform: translateY(-10px);
+.cta-button:active ~ .rope {
+  width: 100%;
+  transform: translateX(-50%) rotate(10deg);
+  animation: wiggle 0.5s ease infinite;
 }
 
-.user-item h3 {
-  font-size: 24px;
-  font-weight: 500;
+/* Wiggle animation for the rope */
+@keyframes wiggle {
+  0%, 100% {
+    transform: translateX(-50%) rotate(10deg);
+  }
+  50% {
+    transform: translateX(-50%) rotate(-10deg);
+  }
 }
 
-.user-item p {
-  font-size: 16px;
-}
-
-/* Technology section */
-.about-tech {
-  background-color: #e1f5fe;
-  padding: 70px 30px;
-  border-radius: 20px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-}
-
-.tech-content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.tech-icons {
-  margin-top: 30px;
+/* Features Section */
+.features {
   display: flex;
-  justify-content: center;
-  gap: 50px;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-bottom: 50px;
 }
 
-.tech-icons img {
-  width: 80px;
-  height: auto;
+.feature {
+  flex: 1 1 300px;
+  margin: 15px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
 }
 
-/* Call to action section */
+.feature:hover {
+  transform: translateY(-5px);
+}
+
+.feature h2 {
+  font-size: 24px;
+  color: #4CAF50;
+  margin-bottom: 15px;
+}
+
+.feature p {
+  font-size: 16px;
+  color: #666;
+}
+
+/* Call to Action Section */
 .call-to-action {
-  background-color: #007bff;
+  background-color: #00bcd4;
   color: white;
-  padding: 70px 30px;
-  border-radius: 20px;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  padding: 60px 30px;
+  text-align: center;
+  border-radius: 15px;
+  margin-bottom: 40px;
 }
 
 .call-to-action h2 {
@@ -261,32 +210,42 @@ export default {
   margin-bottom: 20px;
 }
 
-button {
-  background: linear-gradient(135deg, #1d3557, #457b9d);
-  color: white;
-  border: none;
-  border-radius: 50px;
-  padding: 15px 30px;
-  font-size: 18px;
-  transition: all 0.3s ease;
+.call-to-action p {
+  font-size: 20px;
+  max-width: 800px;
+  margin: 0 auto 30px auto;
 }
 
-button:hover {
-  background: linear-gradient(135deg, #457b9d, #1d3557);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+.call-to-action .cta-button {
+  background-color: #FF7043;
 }
 
+.call-to-action .cta-button:hover {
+  background-color: #E64A19;
+  box-shadow: 0px 8px 16px rgba(255, 112, 67, 0.3);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-  .about-hero h1 {
+  .features {
+    flex-direction: column;
+  }
+
+  .feature {
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
     font-size: 36px;
   }
 
-  .about-hero p {
+  .hero p {
     font-size: 18px;
   }
 
-  .user-grid {
-    grid-template-columns: 1fr;
+  .cta-button {
+    font-size: 16px;
+    padding: 12px 30px;
   }
 
   .call-to-action h2 {

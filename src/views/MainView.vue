@@ -2,24 +2,45 @@
   <div class="hero-container">
     <!-- Hero Section -->
     <header class="hero">
-      <h1>Bienvenue sur QuizApp!</h1>
-      <p>Testez vos connaissances sur divers sujets et recevez un feedback instantané. Améliorez vos compétences tout en vous amusant !</p>
-      <button @click="startQuiz">Commencez à jouer</button>
+      <div class="hero-content">
+        <h1>Explorez votre sentier de connaissances</h1>
+        <p>
+          Partez à la découverte de nouveaux horizons avec des quiz thématiques
+          stimulants. Progressez à chaque étape et débloquez des badges de
+          savoir.
+        </p>
+        <button @click="startQuiz" class="cta-button with-rope">
+          Commencez votre aventure
+        </button>
+        <div class="rope"></div>
+      </div>
     </header>
 
     <!-- Feature Section -->
     <section class="features">
       <div class="feature">
-        <h2>Large choix de sujets</h2>
-        <p>Explorez des questions variées allant de la culture générale à la science et bien plus encore !</p>
+        <h2>Suivez votre propre chemin</h2>
+        <p>
+          Choisissez des quiz adaptés à vos centres d'intérêt et progressez sur
+          des pistes variées, de la science à la culture générale.
+        </p>
       </div>
       <div class="feature">
-        <h2>Retour instantané</h2>
-        <p>Recevez des commentaires détaillés après chaque réponse pour mieux comprendre vos erreurs et progresser rapidement.</p>
+        <h2>Badges et progression</h2>
+        <p>
+          Gagnez des badges en franchissant des étapes et visualisez votre
+          progression sur un sentier personnalisé.
+        </p>
+        <div class="progress-bar">
+          <div class="progress" :style="{ width: progressPercentage + '%' }"></div>
+        </div>
       </div>
       <div class="feature">
-        <h2>Accédez partout</h2>
-        <p>Jouez et apprenez depuis n'importe quel appareil, que vous soyez sur un ordinateur, une tablette ou un smartphone.</p>
+        <h2>Accessible partout</h2>
+        <p>
+          Progressez sur QuizTrail depuis votre ordinateur, tablette ou
+          smartphone, peu importe où vous êtes.
+        </p>
       </div>
     </section>
 
@@ -30,8 +51,16 @@
 
       <form @submit.prevent="submitAnswer">
         <input v-model="userAnswer" type="text" placeholder="Entrez votre réponse..." required />
-        <button type="submit">Envoyer la réponse</button>
+        <button type="submit" class="cta-button with-rope">Envoyer la réponse</button>
+        <br />
+        <br />
+        <div class="rope"></div>
       </form>
+
+      <!-- Button to show another random question -->
+      <button @click="getRandomQuestion" class="cta-button with-rope">
+        Afficher une autre question
+      </button>
 
       <p v-if="submitted && successMessage" class="success">{{ successMessage }}</p>
       <p v-if="submitted && feedbackMessage" class="feedback">{{ feedbackMessage }}</p>
@@ -41,27 +70,30 @@
 
 <script>
 import { signInAnonymously } from "firebase/auth";
-import { pushData, listenForFeedback , auth} from "@/firebase";
+import { ref, onValue, push } from 'firebase/database';
+import { auth, database } from '../firebase';
 
 export default {
   data() {
     return {
-      question: "Quelle est la capitale du Valais ?", // Static example question
+      question: "Quel sont les pays avec une frontière terrestre avec la France?", // Dynamic example question
       userAnswer: "",
       successMessage: "",
       feedbackMessage: "",
       submitted: false, // Track if the user has submitted the answer
+      progressPercentage: 50, // Example progress percentage for the progress bar
+      questionsList: ["Quelle est la plus grande planète du système solaire?", "Quel sport est typique indien?"] // Store all the questions fetched from the database
     };
   },
   mounted() {
     this.checkAuthStatus();
+    this.fetchQuestions(); // Fetch questions when the component is mounted
   },
   methods: {
     checkAuthStatus() {
       const currentUser = auth.currentUser;
 
       if (!currentUser) {
-        // If no user is logged in, sign in anonymously
         signInAnonymously(auth)
           .then((result) => {
             console.log("Utilisateur connecté anonymement:", result.user);
@@ -84,7 +116,7 @@ export default {
       };
 
       try {
-        const newRef = await pushData("/answers", answerData);
+        const newRef = await push(ref(database, "/answers"), answerData);
         if (newRef && newRef.key) {
           this.successMessage = "Votre réponse a été envoyée avec succès !";
           this.userAnswer = ""; // Clear the input after submission
@@ -99,20 +131,70 @@ export default {
     },
     listenForFeedback(answerKey) {
       const feedbackPath = `/answers/${answerKey}/feedback`;
-      listenForFeedback(feedbackPath, (feedback) => {
+      ref(database, feedbackPath).on("value", (snapshot) => {
+        const feedback = snapshot.val();
         if (feedback) {
           this.feedbackMessage = feedback;
-          console.log("Feedback mis à jour :", feedback);
         } else {
           this.feedbackMessage = "Aucun feedback disponible pour le moment.";
         }
       });
     },
-  },
+    fetchQuestions() {
+  const quizzesRef = ref(database, '/quizzs2'); // Root path for quizzes
+  onValue(quizzesRef, (snapshot) => {
+    const quizzesData = snapshot.val();
+    this.questionsList = [];
+
+    // Loop over main categories, subcategories, precise categories, and quiz IDs to get the questions
+    for (const mainCategory in quizzesData) {
+      for (const subCategory in quizzesData[mainCategory]) {
+        for (const preciseCategory in quizzesData[mainCategory][subCategory]) {
+          for (const quizID in quizzesData[mainCategory][subCategory][preciseCategory]) {
+            const quiz = quizzesData[mainCategory][subCategory][preciseCategory][quizID];
+            if (quiz.questions) {
+              // Push all questions from this quiz into the questionsList array
+              this.questionsList.push(...quiz.questions.map(question => ({
+                ...question, 
+                mainCategory, 
+                subCategory, 
+                preciseCategory, 
+                quizID, 
+                quizTheme: quiz.theme // Add additional details for each question
+              })));
+            }
+          }
+        }
+      }
+    }
+
+    // After fetching all questions, get a random one
+    this.getRandomQuestion();
+  });
+},
+
+getRandomQuestion() {
+  if (this.questionsList.length > 0) {
+    const randomIndex = Math.floor(Math.random() * this.questionsList.length);
+    const randomQuestion = this.questionsList[randomIndex];
+    this.question = randomQuestion.title; // Display the random question
+    this.quizMetadata = {
+      mainCategory: randomQuestion.mainCategory,
+      subCategory: randomQuestion.subCategory,
+      preciseCategory: randomQuestion.preciseCategory,
+      quizID: randomQuestion.quizID,
+      quizTheme: randomQuestion.quizTheme,
+    }; // Store the metadata for future use if needed
+  } else {
+    this.question = "Aucune question disponible pour le moment.";
+  }
+},
+
+  }
 };
 </script>
 
-<style scoped>
+<style>
 /* Main Container */
 .hero-container {
   max-width: 1100px;
@@ -123,40 +205,59 @@ export default {
 
 /* Hero Section */
 .hero {
-  padding: 60px 20px;
-  background-color: #f0f4f8;
+  background-image: url('@/assets/back.png'); /* Custom background image */
+  background-size: cover;
+  background-position: center;
+  padding: 100px 20px;
+  color: white;
+  text-align: center;
+  position: relative;
+  z-index: 1;
   border-radius: 12px;
   margin-bottom: 50px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: -1;
 }
 
 .hero h1 {
-  font-size: 42px;
-  color: #333;
+  font-size: 48px;
   margin-bottom: 20px;
   font-weight: bold;
+  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 .hero p {
   font-size: 20px;
-  color: #555;
   margin-bottom: 30px;
 }
 
-.hero button {
+/* CTA Button */
+.cta-button {
   padding: 15px 35px;
   font-size: 18px;
-  background-color: #007bff;
+  background-color: #FF7043;
   color: white;
   border-radius: 8px;
   border: none;
   cursor: pointer;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.hero button:hover {
-  background-color: #0056b3;
-  box-shadow: 0px 8px 16px rgba(0, 123, 255, 0.2);
+.cta-button:hover {
+  background-color: #E64A19;
+  box-shadow: 0px 8px 16px rgba(255, 112, 67, 0.3);
 }
 
 /* Features Section */
@@ -172,17 +273,17 @@ export default {
   padding: 20px;
   background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease;
 }
 
 .feature:hover {
-  transform: translateY(-5px); /* Slight lift on hover */
+  transform: translateY(-5px);
 }
 
 .feature h2 {
   font-size: 24px;
-  color: #333;
+  color: #4CAF50;
   margin-bottom: 15px;
 }
 
@@ -191,10 +292,26 @@ export default {
   color: #666;
 }
 
+/* Progress Bar */
+.progress-bar {
+  width: 100%;
+  background-color: #F5F5F5;
+  border-radius: 8px;
+  margin-top: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+  height: 10px;
+  background-color: #4CAF50;
+  width: 50%; /* Dynamic width based on progress */
+}
+
 /* Example Quiz Section */
 .example-quiz {
   padding: 40px;
-  background-color: #f9f9f9;
+  background-color: #F5F5F5;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin-bottom: 40px;
@@ -203,12 +320,13 @@ export default {
 .example-quiz h2 {
   font-size: 28px;
   margin-bottom: 20px;
+  color: #FF7043; /* Orange chaleureux pour attirer l'attention */
 }
 
 .question-text {
   font-size: 18px;
   margin-bottom: 20px;
-  color: #444;
+  color: #333;
 }
 
 input[type="text"] {
@@ -223,7 +341,7 @@ input[type="text"] {
 
 button {
   padding: 12px 30px;
-  background-color: #007bff;
+  background-color: #4CAF50;
   color: white;
   border-radius: 8px;
   border: none;
@@ -234,7 +352,7 @@ button {
 }
 
 button:hover {
-  background-color: #0056b3;
+  background-color: #388E3C;
 }
 
 .success {
@@ -264,7 +382,11 @@ button:hover {
     font-size: 36px;
   }
 
-  .hero button {
+  .hero p {
+    font-size: 18px;
+  }
+
+  .cta-button {
     font-size: 16px;
     padding: 12px 30px;
   }
