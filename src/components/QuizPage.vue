@@ -130,7 +130,7 @@ export default {
   created() {
     // Charger les quizzes depuis Firebase
     const db = database;
-    const quizzesRef = ref(db, 'quizzes');
+    const quizzesRef = ref(db, 'quizzs2');
 
     onValue(quizzesRef, (snapshot) => {
       const quizzesData = snapshot.val();

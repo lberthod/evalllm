@@ -22,8 +22,11 @@ const routes = [
     name: "Historique",
     component: HistoriqueView,
   },
-  { path: "/quiz/:id", name: "QuizDetails", component: QuizDetails },
   {
+    path: "/quiz/:mainCategory/:subCategory/:preciseCategory/:quizId",
+    name: "QuizView",
+    component: QuizDetails, // Ou QuizView si c'est un autre composant
+  },  {
     path: "/about",
     name: "About",
     component: AboutView,

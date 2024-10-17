@@ -76,13 +76,14 @@ import { auth, database } from '../firebase';
 export default {
   data() {
     return {
-      question: "", // Question starts empty to avoid auto-setting
+      question: "", // Start empty
       userAnswer: "",
       successMessage: "",
       feedbackMessage: "",
       submitted: false, // Track if the user has submitted the answer
       progressPercentage: 50, // Example progress percentage for the progress bar
-      questionsList: [] // Will store all fetched questions from the database
+      questionsList: [], // Store all fetched questions from the database
+      firstLoad: true, // Track if it's the first time fetching questions
     };
   },
   mounted() {
@@ -110,7 +111,7 @@ export default {
     },
     async submitAnswer() {
       const answerData = {
-        question: this.question,
+        question: this.question, // Keep the current question
         answer: this.userAnswer,
         timestamp: new Date().toISOString(),
       };
@@ -172,8 +173,11 @@ export default {
           }
         }
 
-        // After fetching all questions, get a random one
-        this.getRandomQuestion();
+        // Only call getRandomQuestion once after fetching questions for the first time
+        if (this.firstLoad) {
+          this.getRandomQuestion(); // Get a random question
+          this.firstLoad = false; // Set the first load to false
+        }
       });
     },
     getRandomQuestion() {

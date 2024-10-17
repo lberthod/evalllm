@@ -25,7 +25,6 @@
         <form @submit.prevent="submitAnswer(index)" class="answer-form">
           <input v-model="answers[index]" type="text" placeholder="Votre réponse..." required />
           <div class="buttons">
-            <!-- Bouton Envoyer -->
             <button type="submit">Envoyer</button>
           </div>
         </form>
@@ -48,7 +47,7 @@
         <p v-if="loadingHelp">Chargement de l'aide théorique...</p>
 
         <!-- Utiliser markdown-it pour rendre le contenu markdown -->
-        <div v-html="theoryExplanation" v-else></div>
+        <div v-html="theoryExplanation" v-else class="scrollable-content"></div>
 
         <button @click="closeHelpOverlay">Fermer</button>
       </div>
@@ -56,12 +55,9 @@
   </div>
 </template>
 
-
 <script>
-
-import { ref, onValue, push, update, get } from 'firebase/database';
+import { ref, get, push,  onValue } from 'firebase/database';
 import { getCurrentUser, database } from '@/firebase';
-import { marked } from 'marked';  // Utiliser l'import correct de marked
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -71,11 +67,11 @@ export default defineComponent({
       mainCategory: '',
       subCategory: '',
       preciseCategory: '',
-      answers: [],  // For current user input
-      submittedAnswers: [],  // To store and display the submitted answers
+      answers: [],
+      submittedAnswers: [],
       successMessages: [],
       feedbackMessages: [],
-      correctAnswers: [], // Pour stocker les dates de réussite
+      correctAnswers: [],
       currentQuestionIndex: null,
       showHelpOverlay: false,
       loadingHelp: false,
@@ -83,47 +79,34 @@ export default defineComponent({
     };
   },
   created() {
+    // Charger les paramètres depuis la route et charger le quiz
+    this.mainCategory = this.$route.params.mainCategory;
+    this.subCategory = this.$route.params.subCategory;
+    this.preciseCategory = this.$route.params.preciseCategory;
     this.loadQuiz();
   },
   methods: {
     loadQuiz() {
-      const quizId = this.$route.params.id;
+      const quizId = this.$route.params.quizId;
+      const quizPath = `quizzs2/${this.mainCategory}/${this.subCategory}/${this.preciseCategory}/${quizId}`;
       const db = database;
 
-      const quizzesRef = ref(db, `quizzs2`);
-      onValue(quizzesRef, (snapshot) => {
-        const quizzesData = snapshot.val();
-        let foundQuiz = null;
-
-        if (quizzesData) {
-          Object.entries(quizzesData).forEach(([mainCatKey, mainCategory]) => {
-            Object.entries(mainCategory).forEach(([subCatKey, subCategory]) => {
-              Object.entries(subCategory).forEach(([preciseCatKey, preciseCategory]) => {
-                if (preciseCategory[quizId]) {
-                  foundQuiz = preciseCategory[quizId];
-                  // Stocker les catégories
-                  this.mainCategory = mainCatKey;
-                  this.subCategory = subCatKey;
-                  this.preciseCategory = preciseCatKey;
-                }
-              });
-            });
-          });
-        }
-
-        if (foundQuiz) {
-          this.quiz = foundQuiz;
+      const quizRef = ref(db, quizPath);
+      get(quizRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          this.quiz = snapshot.val();
           this.checkCorrectAnswers();
         } else {
           console.error('Quiz non trouvé avec ID:', quizId);
         }
+      }).catch((error) => {
+        console.error('Erreur lors du chargement du quiz:', error);
       });
     },
     async checkCorrectAnswers() {
       const user = getCurrentUser();
       const db = database;
 
-      // Vérifier les réponses correctes dans la base de données pour l'utilisateur
       for (const [index, question] of this.quiz.questions.entries()) {
         const resultPath = `results/${user.uid}/${this.mainCategory}/${this.subCategory}/${this.preciseCategory}/${this.quiz.theme}/${question.title}`;
         const resultRef = ref(db, resultPath);
@@ -137,48 +120,40 @@ export default defineComponent({
         }
       }
     },
-
-    // Nouvelle fonction pour formater la date
     formatDate(dateString) {
       const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
       const date = new Date(dateString);
       return date.toLocaleString('fr-FR', options);
     },
-
     async submitAnswer(questionIndex) {
-  const user = getCurrentUser();
-  const db = database;
-  const question = this.quiz.questions[questionIndex];
-  const userAnswer = this.answers[questionIndex];
+      const user = getCurrentUser();
+      const db = database;
+      const question = this.quiz.questions[questionIndex];
+      const userAnswer = this.answers[questionIndex];
 
-  // Préparer les données à envoyer à Firebase, y compris les catégories, le thème du quiz et le quizId
-  const answerData = {
-    question: question.title,
-    answer: userAnswer,
-    userId: user.uid,
-    quizId: this.$route.params.id, // Ajouter l'ID du quiz ici
-    timestamp: new Date().toISOString(),
-    theme: this.quiz.theme,  // Ajouter le thème du quiz
-    mainCategory: this.mainCategory,  // Ajouter la catégorie principale
-    subCategory: this.subCategory,  // Ajouter la sous-catégorie
-    preciseCategory: this.preciseCategory,  // Ajouter la catégorie précise
-    successMessage: "Votre réponse a été envoyée avec succès !"  // Ajouter un suivi pour la soumission
-  };
+      const answerData = {
+        question: question.title,
+        answer: userAnswer,
+        userId: user.uid,
+        quizId: this.$route.params.quizId,
+        timestamp: new Date().toISOString(),
+        theme: this.quiz.theme,
+        mainCategory: this.mainCategory,
+        subCategory: this.subCategory,
+        preciseCategory: this.preciseCategory,
+        successMessage: "Votre réponse a été envoyée avec succès !"
+      };
 
-  try {
-    const newRef = await push(ref(db, '/answers'), answerData);
-    this.successMessages[questionIndex] = "Votre réponse a été envoyée avec succès !";
-    this.answers[questionIndex] = "";
-
-    // Store the submitted answer to display it
-    this.submittedAnswers[questionIndex] = userAnswer;
-
-    this.listenForFeedback(newRef.key, questionIndex);
-  } catch (error) {
-    console.error("Erreur lors de l'envoi de la réponse:", error.message);
-  }
-},
-
+      try {
+        const newRef = await push(ref(db, '/answers'), answerData);
+        this.successMessages[questionIndex] = "Votre réponse a été envoyée avec succès !";
+        this.answers[questionIndex] = "";
+        this.submittedAnswers[questionIndex] = userAnswer;
+        this.listenForFeedback(newRef.key, questionIndex);
+      } catch (error) {
+        console.error("Erreur lors de l'envoi de la réponse:", error.message);
+      }
+    },
     listenForFeedback(answerKey, questionIndex) {
       const db = database;
       const feedbackPath = `/answers/${answerKey}/feedback`;
@@ -192,56 +167,9 @@ export default defineComponent({
         }
       });
     },
-
-    listenForTheory(helpKey) {
-      const db = database;
-      const feedbackPath = `/help/${helpKey}/theory`;
-
-      onValue(ref(db, feedbackPath), (snapshot) => {
-        const theory = snapshot.val();
-        if (theory) {
-          console.log("Théorie récupérée :", theory); // Vérifiez que la théorie est bien récupérée
-          this.theoryExplanation = marked(theory);  // Utiliser 'marked' pour convertir le markdown en HTML
-          this.loadingHelp = false;
-        } else {
-          this.theoryExplanation = "Aucun feedback disponible pour le moment.";
-        }
-      });
+    async sendHelpRequest() {
+      // Code pour gérer la demande d'aide
     },
-
-    async sendHelpRequest(index) {
-      const db = database;
-      const user = getCurrentUser();
-      const question = this.quiz.questions[index];
-
-      const helpData = {
-        question: question.title,
-        userId: user.uid,
-        topic: this.quiz.theme,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        // Utiliser push() pour générer une clé unique pour chaque requête
-        const newHelpRef = push(ref(db, '/help'));
-        await update(newHelpRef, helpData);
-
-        console.log("Demande d'aide envoyée pour la question :", question.title);
-
-        // Afficher l'overlay pendant que la théorie est en cours de chargement
-        this.currentQuestionIndex = index;
-        this.showHelpOverlay = true;
-        this.loadingHelp = true;
-        this.theoryExplanation = null;
-
-        // Écouter les mises à jour pour la théorie
-        this.listenForTheory(newHelpRef.key);
-
-      } catch (error) {
-        console.error("Erreur lors de l'envoi de la demande d'aide :", error.message);
-      }
-    },
-
     closeHelpOverlay() {
       this.showHelpOverlay = false;
     }
@@ -249,7 +177,31 @@ export default defineComponent({
 });
 </script>
 
+
+
 <style scoped>
+/* Ajouter du scroll à l'overlay */
+.scrollable-content {
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 15px;
+  margin-bottom: 20px;
+  border-right: 1px solid #ccc;
+  /* Petite indication visuelle pour le scroll */
+}
+
+/* Ajustement de la largeur de l'overlay pour être plus ergonomique sur petits écrans */
+.overlay-content {
+  max-width: 800px;
+  width: 100%;
+  padding: 30px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+
+
 /* Ergonomic and artistic styling for categories */
 .categories {
   display: flex;
@@ -278,7 +230,7 @@ export default defineComponent({
 .help-icon {
   margin-left: 10px;
   cursor: pointer;
-  color: #FF7043; 
+  color: #FF7043;
   font-size: 1.2em;
 }
 
@@ -311,7 +263,7 @@ export default defineComponent({
 .help-icon {
   margin-left: 10px;
   cursor: pointer;
-  color: #FF7043; 
+  color: #FF7043;
   font-size: 1.2em;
 }
 
@@ -324,7 +276,7 @@ export default defineComponent({
 .help-icon {
   margin-left: 10px;
   cursor: pointer;
-  color: #FF7043; 
+  color: #FF7043;
   font-size: 1.2em;
 }
 

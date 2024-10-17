@@ -1,34 +1,44 @@
 <template>
   <div class="category-navigator">
     <h1 class="heading-primary">Explore Categories</h1>
+    
+    <!-- Affichage du message de chargement -->
     <div v-if="loading" class="loading">Loading categories...</div>
+    
+    <!-- Si les catégories sont chargées -->
     <div v-else>
       <div class="category-list">
         <ul>
+          <!-- Boucle sur les catégories principales -->
           <li
             v-for="(category, index) in categories"
             :key="index"
             class="category-item"
             @click="toggleCategory(index)"
           >
+            <!-- Affichage de la catégorie principale -->
             <div class="category-header">
               <h2>{{ category.main_category }}</h2>
               <i :class="expandedCategory === index ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
             </div>
 
+            <!-- Si la catégorie est étendue, on affiche les sous-catégories -->
             <div v-show="expandedCategory === index" class="subcategory-container">
               <ul class="subcategory-list">
+                <!-- Boucle sur les sous-catégories -->
                 <li
                   v-for="(subCategory, subIndex) in category.sub_categories"
                   :key="subIndex"
                   class="subcategory-item"
                   @click="toggleSubCategory(subIndex, $event)"
                 >
+                  <!-- Affichage du nom de la sous-catégorie -->
                   <div class="subcategory-header">
                     <strong>{{ subCategory.name }}</strong>
                     <i :class="expandedSubCategory === subIndex ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
                   </div>
 
+                  <!-- Si la sous-catégorie est étendue, on affiche les catégories précises -->
                   <ul v-show="expandedSubCategory === subIndex" class="precise-category-list">
                     <li v-for="(precise, preciseIndex) in subCategory.precise_categories" :key="preciseIndex" class="precise-item">
                       - {{ precise }}
@@ -45,54 +55,47 @@
 </template>
 
 <script>
-import { getDatabase, ref, onValue } from "firebase/database";
+// Import the JSON file
+import categoryData from "@/assets/category.json";
 
 export default {
   data() {
     return {
-      categories: [], // Holds the categories data
-      loading: true, // Flag for loading state
-      expandedCategory: null, // Track which category is expanded
-      expandedSubCategory: null // Track which subcategory is expanded
+      categories: [], // Stocke les catégories
+      loading: true, // Indicateur de chargement
+      expandedCategory: null, // Catégorie actuellement étendue
+      expandedSubCategory: null // Sous-catégorie actuellement étendue
     };
   },
   methods: {
-    // Fetch categories from Firebase Realtime Database
+    // Chargement des catégories à partir du fichier JSON
     fetchCategories() {
-      const db = getDatabase();  // Initialize the Firebase Realtime Database
-      const categoriesRef = ref(db, 'category/categories');  // Reference to the 'category/categories' node
-
-      onValue(categoriesRef, (snapshot) => {
-        const data = snapshot.val();  // Get the snapshot of the data
-        if (data) {
-          this.categories = data;  // Set the categories to the data from Firebase
-          this.loading = false;  // Stop the loading state
-        }
-      }, (error) => {
-        console.error("Error fetching categories from Firebase:", error);
-        this.loading = false;
-      });
+      this.categories = categoryData.categories;  // Accède à la clé 'categories' du JSON
+      this.loading = false;  // Arrête l'état de chargement
     },
-    // Toggle the visibility of subcategories for a category
+    // Toggle pour étendre ou réduire une catégorie
     toggleCategory(index) {
       this.expandedCategory = this.expandedCategory === index ? null : index;
-      this.expandedSubCategory = null; // Reset subcategory expansion when switching categories
+      this.expandedSubCategory = null; // Réinitialise les sous-catégories lorsqu'on change de catégorie
     },
-    // Toggle the visibility of precise categories for a subcategory
+    // Toggle pour étendre ou réduire une sous-catégorie
     toggleSubCategory(index, event) {
-      event.stopPropagation(); // Prevent category collapse on subcategory click
+      event.stopPropagation(); // Empêche l'effondrement de la catégorie principale lors du clic
       this.expandedSubCategory = this.expandedSubCategory === index ? null : index;
     }
   },
   mounted() {
-    this.fetchCategories(); // Fetch categories when component is mounted
+    // Charge les catégories au montage du composant
+    this.fetchCategories();
   }
 };
 </script>
+
+
 <style>
 .category-navigator {
   margin: 40px;
-  margin : 20px    auto;
+  margin: 20px auto;
   padding: 20px 40px auto;
   background-color: #f7f7f7;
   border-radius: 10px;
@@ -133,7 +136,8 @@ export default {
 
 /* Header for Each Category */
 .category-header {
-  max-height: 20px;;
+  max-height: 20px;
+  ;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -145,7 +149,8 @@ export default {
 
 /* Subcategory Container */
 .subcategory-container {
-  max-height: 300px;  /* Limit height to handle long lists */
+  max-height: 300px;
+  /* Limit height to handle long lists */
   overflow-y: auto;
   margin-top: 10px;
   padding: 10px;
@@ -235,5 +240,4 @@ export default {
 .subcategory-container::-webkit-scrollbar-thumb:hover {
   background: #888;
 }
-
 </style>

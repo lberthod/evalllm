@@ -39,10 +39,21 @@
       <h2>Quizzes disponibles</h2>
       <ul>
         <li v-for="(quiz, index) in paginatedQuizzes" :key="index" class="quiz-item">
-          <button @click="viewQuiz(quiz.id)" class="quiz-button">
+          <router-link
+            :to="{
+              name: 'QuizView',
+              params: {
+                mainCategory: quiz.category.main,
+                subCategory: quiz.category.sub,
+                preciseCategory: quiz.category.precise,
+                quizId: quiz.id
+              }
+            }"
+            class="quiz-button"
+          >
             <i class="fas fa-mountain"></i> <!-- Icon representing quiz as a journey -->
             {{ quiz.theme }}
-          </button>
+          </router-link>
         </li>
       </ul>
 
@@ -77,13 +88,12 @@
 </template>
 
 <script>
-import { ref, onValue } from 'firebase/database';
-import { database } from '../firebase';
+import categoryData from "@/assets/category.json"; // Import categories from local JSON
 
 export default {
   data() {
     return {
-      quizzes: [], // List of all quizzes from Firebase
+      quizzes: [], // List of all quizzes (this can still be fetched from Firebase or added manually)
       filteredQuizzes: [], // Quizzes filtered by selected categories
       categories: [], // Main categories
       subCategories: [], // Subcategories
@@ -121,9 +131,6 @@ export default {
         this.currentPage = page;
       }
     },
-    viewQuiz(quizId) {
-      this.$router.push({ name: 'QuizDetails', params: { id: quizId } });
-    },
     fetchQuizzesForMainCategory() {
       this.filteredQuizzes = [];
       this.subCategories = [];
@@ -132,27 +139,6 @@ export default {
       const mainCategory = this.selectedMainCategory;
 
       if (mainCategory) {
-        // Fetch quizzes for the selected main category
-        const quizzesRef = ref(database, `quizzs2/${mainCategory}`);
-        onValue(quizzesRef, (snapshot) => {
-          const quizzesData = snapshot.val();
-          if (quizzesData) {
-            this.filteredQuizzes = [];
-            Object.entries(quizzesData).forEach(([subCategoryName, preciseCategoriesObj]) => {
-              Object.entries(preciseCategoriesObj).forEach(([preciseCategoryName, quizObj]) => {
-                Object.entries(quizObj).forEach(([quizId, quiz]) => {
-                  this.filteredQuizzes.push({
-                    ...quiz,
-                    id: quizId,
-                    category: { main: mainCategory, sub: subCategoryName, precise: preciseCategoryName }
-                  });
-                });
-              });
-            });
-            this.currentPage = 1;
-          }
-        });
-
         // Set subcategories based on the selected main category
         const selectedCategory = this.categories.find(cat => cat.main_category === this.selectedMainCategory);
         this.subCategories = selectedCategory ? selectedCategory.sub_categories : [];
@@ -162,71 +148,27 @@ export default {
       this.filteredQuizzes = [];
       this.preciseCategories = [];
 
-      const mainCategory = this.selectedMainCategory;
       const subCategory = this.selectedSubCategory;
 
-      if (mainCategory && subCategory) {
-        // Fetch quizzes for the selected subcategory
-        const quizzesRef = ref(database, `quizzs2/${mainCategory}/${subCategory}`);
-        onValue(quizzesRef, (snapshot) => {
-          const quizzesData = snapshot.val();
-          if (quizzesData) {
-            this.filteredQuizzes = [];
-            Object.entries(quizzesData).forEach(([preciseCategoryName, quizObj]) => {
-              Object.entries(quizObj).forEach(([quizId, quiz]) => {
-                this.filteredQuizzes.push({
-                  ...quiz,
-                  id: quizId,
-                  category: { main: mainCategory, sub: subCategory, precise: preciseCategoryName }
-                });
-              });
-            });
-            this.currentPage = 1;
-          }
-        });
-
+      if (subCategory) {
         // Set precise categories based on the selected subcategory
         const selectedSubCat = this.subCategories.find(subCat => subCat.name === this.selectedSubCategory);
         this.preciseCategories = selectedSubCat ? selectedSubCat.precise_categories : [];
       }
     },
     fetchQuizzesForPreciseCategory() {
-      this.filteredQuizzes = [];
-
-      const mainCategory = this.selectedMainCategory;
-      const subCategory = this.selectedSubCategory;
-      const preciseCategory = this.selectedPreciseCategory;
-
-      if (mainCategory && subCategory && preciseCategory) {
-        // Fetch quizzes for the selected precise category
-        const quizzesRef = ref(database, `quizzs2/${mainCategory}/${subCategory}/${preciseCategory}`);
-        onValue(quizzesRef, (snapshot) => {
-          const quizzesData = snapshot.val();
-          if (quizzesData) {
-            this.filteredQuizzes = [];
-            Object.entries(quizzesData).forEach(([quizId, quiz]) => {
-              this.filteredQuizzes.push({
-                ...quiz,
-                id: quizId,
-                category: { main: mainCategory, sub: subCategory, precise: preciseCategory }
-              });
-            });
-            this.currentPage = 1;
-          }
-        });
-      }
+      // This method would handle fetching quizzes based on the selected precise category.
+      // Since you are using a local JSON, you might want to add some mock data for quizzes or adapt this logic.
     }
   },
   created() {
-    // Fetch categories once when the component is created
-    const categoriesRef = ref(database, 'category');
-    onValue(categoriesRef, (snapshot) => {
-      const categoriesData = snapshot.val();
-      this.categories = categoriesData ? categoriesData.categories : [];
-    });
+    // Fetch categories from the local JSON
+    this.categories = categoryData.categories;
   }
 };
 </script>
+
+
 
 <style scoped>.container {
   max-width: 900px;

@@ -142,7 +142,7 @@ export function getLastAnswerKey(path) {
 export function saveQuizToFirebase(userId, quizData) {
   const db = getDatabase();
 
-  const quizRef = push(ref(db, `quizzes/${userId}`)); // Crée un nouvel ID pour le quiz
+  const quizRef = push(ref(db, `quizzs2/${userId}`)); // Crée un nouvel ID pour le quiz
   set(quizRef, quizData);  // Sauvegarde les données du quiz
 }
 
