@@ -10,6 +10,7 @@ import StudyView from "./views/StudyView.vue";
 import QuizDetails from "./components/QuizDetails.vue"; // Créez cette vue pour afficher les questions
 import CategoryNavigator from "./components/CategoryNavigator.vue"; // Créez cette vue pour afficher les questions
 import HistoriqueView from "@/views/HistoriqueView.vue";
+import ClassementView from "@/views/ClassementView.vue";
 
 const routes = [
   {
@@ -17,6 +18,13 @@ const routes = [
     name: "Home",
     component: MainView,
   },
+
+  {
+    path: "/classement",
+    name: "Classement",
+    component: ClassementView,
+  },
+  
   {
     path: "/historique",
     name: "Historique",
@@ -26,7 +34,8 @@ const routes = [
     path: "/quiz/:mainCategory/:subCategory/:preciseCategory/:quizId",
     name: "QuizView",
     component: QuizDetails, // Ou QuizView si c'est un autre composant
-  },  {
+  },
+  {
     path: "/about",
     name: "About",
     component: AboutView,

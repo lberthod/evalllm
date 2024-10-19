@@ -1,7 +1,5 @@
 <template>
   <div>
-  
-
     <h1>Créer un Quiz</h1>
     <p>Nom du quiz:</p>
     <input v-model="quizName" placeholder="Entrez le nom du quiz" />
@@ -47,8 +45,8 @@
 </template>
 
 <script>
-import {  ref, onValue, set } from 'firebase/database';
-import { getCurrentUser, saveQuizToFirebase,database } from '../firebase';
+import { getCurrentUser, saveQuizToFirebase } from '../firebase';
+import categoryData from "@/assets/category.json"; // Import categories from local JSON
 
 export default {
   data() {
@@ -56,7 +54,6 @@ export default {
       quizName: '',
       numQuestions: 1,
       questions: [],
-      quizzes: [],
       categories: [],             // Liste des catégories principales
       subCategories: [],          // Liste des sous-catégories
       preciseCategories: [],      // Liste des catégories précises
@@ -86,29 +83,9 @@ export default {
         };
         saveQuizToFirebase(user.uid, quizData);
         alert('Quiz soumis avec succès !');
-        this.saveCategoryToFirebase(); // Save categories to Firebase
       } else {
         alert('Vous devez être connecté et remplir tous les champs requis.');
       }
-    },
-    saveCategoryToFirebase() {
-      const db = database;
-      const categoryRef = ref(db, `category/${this.selectedMainCategory}`);
-
-      // Prepare the data to save in Firebase
-      const categoryData = {
-        main_category: this.selectedMainCategory,
-        sub_categories: this.subCategories.map(subCat => ({
-          name: subCat.name,
-          precise_categories: this.preciseCategories
-        }))
-      };
-
-      set(categoryRef, categoryData).then(() => {
-        console.log("Catégorie sauvegardée avec succès !");
-      }).catch((error) => {
-        console.error("Erreur lors de la sauvegarde de la catégorie:", error);
-      });
     },
     onMainCategoryChange() {
       const selectedCategory = this.categories.find(
@@ -125,27 +102,21 @@ export default {
       );
       this.preciseCategories = selectedSubCat ? selectedSubCat.precise_categories : [];
       this.selectedPreciseCategory = '';
+    },
+    // Fetch categories from category.json
+    async fetchCategories() {
+      try {
+        if (categoryData.categories) {
+          this.categories = categoryData.categories;
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des catégories:', error);
+      }
     }
   },
   created() {
-    // Charger les quizzes depuis Firebase
-    const db = database;
-    const quizzesRef = ref(db, 'quizzs2');
-
-    onValue(quizzesRef, (snapshot) => {
-      const quizzesData = snapshot.val();
-      this.quizzes = quizzesData ? Object.values(quizzesData).flat() : [];
-    });
-
-    // Charger les catégories depuis Firebase
-    const categoriesRef = ref(db, 'category');
-
-    onValue(categoriesRef, (snapshot) => {
-      const categoriesData = snapshot.val();
-      this.categories = categoriesData ? categoriesData.categories : [];
-    });
-
-    this.generateQuestions();
+    this.fetchCategories(); // Load categories from the JSON file
+    this.generateQuestions(); // Generate empty question fields
   }
 };
 </script>
@@ -154,11 +125,14 @@ export default {
 .question {
   margin-bottom: 15px;
 }
-input, select {
+
+input,
+select {
   padding: 10px;
   width: 100%;
   margin-bottom: 10px;
 }
+
 button {
   padding: 10px 20px;
   font-size: 16px;

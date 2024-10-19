@@ -20,14 +20,16 @@
       </li>
       <li v-if="isAuthenticated"><router-link to="/navigator">Listing</router-link></li>
       <li v-if="isAuthenticated && isGmailUser"><router-link to="/historique">Historique</router-link></li>
-
       <li v-if="isAuthenticated && isGmailUser"><router-link to="/profile">Profile</router-link></li>
+
+      <!-- Nouveau lien vers la page de classement -->
+      <li v-if="isAuthenticated"><router-link to="/classement">Classement</router-link></li>
+
       <li><router-link to="/contact">Contact</router-link></li>
       <li v-if="isAuthenticated && isGmailUser">
         <a @click.prevent="logout">Logout</a>
       </li>
       <li v-else><router-link to="/login">Login</router-link></li>
-
     </ul>
 
     <!-- Mobile Menu -->
@@ -44,6 +46,12 @@
         <li v-if="isAuthenticated && isGmailUser">
           <router-link to="/profile" @click="closeMobileMenu">Profile</router-link>
         </li>
+
+        <!-- Nouveau lien pour le classement dans le menu mobile -->
+        <li v-if="isAuthenticated">
+          <router-link to="/classement" @click="closeMobileMenu">Classement</router-link>
+        </li>
+
         <li><router-link to="/contact" @click="closeMobileMenu">Contact</router-link></li>
         <li v-if="isAuthenticated && isGmailUser">
           <a @click.prevent="logout">Logout</a>
@@ -53,6 +61,7 @@
     </transition>
   </nav>
 </template>
+
 <script>
 import { ref, onMounted, computed } from 'vue';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
@@ -123,6 +132,9 @@ export default {
   },
 };
 </script>
+
+
+
 <style scoped>
 /* Navbar Styles */
 .navbar {

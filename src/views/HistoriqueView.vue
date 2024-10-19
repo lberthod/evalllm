@@ -11,7 +11,10 @@
                     <h3>{{ question.quizTitle }}</h3>
                     <p><strong>Question:</strong> {{ question.title }}</p>
                     <p><strong>Réussie le:</strong> {{ formatDate(question.date) }}</p>
-                    <button @click="redirectToQuiz(question.quizId)">Voir le Quiz</button>
+                    <button
+                        @click="redirectToQuiz(question.quizId, question.mainCategory, question.subCategory, question.preciseCategory)">
+                        Voir le Quiz
+                    </button>
                 </div>
             </div>
         </div>
@@ -54,9 +57,12 @@ export default {
                                                 this.successfulQuestions.push({
                                                     title: questionTitle,
                                                     date: questionData.date,
+                                                    mainCategory: questionData.mainCategory,
+                                                    preciseCategory: questionData.preciseCategory,
+                                                    subCategory: questionData.subCategory,
                                                     quizId: questionData.quizId,  // Assurez-vous que quizId est stocké dans Firebase
-                                                    quizTitle: quizTheme,
-                                                });
+                                                    quizTitle: quizTheme
+                                                                                                });
                                             }
                                         }
                                     }
@@ -74,13 +80,22 @@ export default {
             const date = new Date(dateString);
             return date.toLocaleString('fr-FR', options);
         },
-        redirectToQuiz(quizId) {
-  if (quizId) {
-    this.$router.push({ name: 'QuizDetails', params: { id: quizId } }); // Correctly pass 'id' param
-  } else {
-    console.error("Quiz ID is missing or undefined.");
-  }
-}
+        redirectToQuiz(quizId, mainCategory, subCategory, preciseCategory) {
+            if (quizId && mainCategory && subCategory && preciseCategory) {
+                this.$router.push({
+                    name: "QuizView",
+                    params: {
+                        mainCategory: mainCategory,
+                        subCategory: subCategory,
+                        preciseCategory: preciseCategory,
+                        quizId: quizId,
+                    }
+                });
+            } else {
+                console.error("Missing parameters for quiz route.");
+            }
+        }
+
 
 
     },

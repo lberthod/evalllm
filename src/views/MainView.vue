@@ -69,9 +69,8 @@
 </template>
 
 <script>
-import { signInAnonymously } from "firebase/auth";
-import { ref, onValue, push } from 'firebase/database';
-import { auth, database } from '../firebase';
+import { ref, push, onValue } from 'firebase/database';
+import { database } from '../firebase';
 
 export default {
   data() {
@@ -82,33 +81,192 @@ export default {
       feedbackMessage: "",
       submitted: false, // Track if the user has submitted the answer
       progressPercentage: 50, // Example progress percentage for the progress bar
-      questionsList: [], // Store all fetched questions from the database
-      firstLoad: true, // Track if it's the first time fetching questions
+      questionsList: [
+        {
+          title: "Quelle est la capitale de la France?",
+          mainCategory: "Geography",
+          subCategory: "Europe",
+          preciseCategory: "France",
+          quizID: "quiz1",
+          quizTheme: "Geography Quiz"
+        },
+        {
+          title: "Quelle est la formule chimique de l'eau?",
+          mainCategory: "Science",
+          subCategory: "Chemistry",
+          preciseCategory: "Basic Compounds",
+          quizID: "quiz2",
+          quizTheme: "Science Quiz"
+        },
+        {
+          title: "Quelle est la capitale de la France?",
+          mainCategory: "Geography",
+          subCategory: "Europe",
+          preciseCategory: "France",
+          quizID: "quiz1",
+          quizTheme: "Geography Quiz"
+        },
+        {
+          title: "Quelle est la formule chimique de l'eau?",
+          mainCategory: "Science",
+          subCategory: "Chemistry",
+          preciseCategory: "Basic Compounds",
+          quizID: "quiz2",
+          quizTheme: "Science Quiz"
+        },
+        {
+          title: "Qui a écrit 'Les Misérables'?",
+          mainCategory: "Literature",
+          subCategory: "French Literature",
+          preciseCategory: "Classics",
+          quizID: "quiz3",
+          quizTheme: "Literature Quiz"
+        },
+        {
+          title: "En quelle année a eu lieu la révolution française?",
+          mainCategory: "History",
+          subCategory: "France",
+          preciseCategory: "Revolutions",
+          quizID: "quiz4",
+          quizTheme: "History Quiz"
+        },
+        {
+          title: "Quelle est la plus grande planète du système solaire?",
+          mainCategory: "Science",
+          subCategory: "Astronomy",
+          preciseCategory: "Planets",
+          quizID: "quiz5",
+          quizTheme: "Astronomy Quiz"
+        },
+        {
+          title: "Qui est le fondateur de Microsoft?",
+          mainCategory: "Technology",
+          subCategory: "Tech Companies",
+          preciseCategory: "Founders",
+          quizID: "quiz6",
+          quizTheme: "Tech Quiz"
+        },
+        {
+          title: "Dans quel pays se trouve la ville de Tokyo?",
+          mainCategory: "Geography",
+          subCategory: "Asia",
+          preciseCategory: "Japan",
+          quizID: "quiz7",
+          quizTheme: "Geography Quiz"
+        },
+        {
+          title: "Quelle est la monnaie officielle des États-Unis?",
+          mainCategory: "Economy",
+          subCategory: "Currencies",
+          preciseCategory: "North America",
+          quizID: "quiz8",
+          quizTheme: "Economy Quiz"
+        },
+        {
+          title: "Quelle est la langue officielle du Brésil?",
+          mainCategory: "Languages",
+          subCategory: "South America",
+          preciseCategory: "Brazil",
+          quizID: "quiz9",
+          quizTheme: "Language Quiz"
+        },
+        {
+          title: "Quel est le plus haut sommet du monde?",
+          mainCategory: "Geography",
+          subCategory: "Mountains",
+          preciseCategory: "World",
+          quizID: "quiz10",
+          quizTheme: "Geography Quiz"
+        },
+        {
+          title: "Qui a peint la 'Joconde'?",
+          mainCategory: "Art",
+          subCategory: "Renaissance",
+          preciseCategory: "Italy",
+          quizID: "quiz11",
+          quizTheme: "Art Quiz"
+        },
+        {
+          title: "Quel est le symbole chimique du fer?",
+          mainCategory: "Science",
+          subCategory: "Chemistry",
+          preciseCategory: "Elements",
+          quizID: "quiz12",
+          quizTheme: "Chemistry Quiz"
+        },
+        {
+          title: "En quelle année a eu lieu le premier vol sur la lune?",
+          mainCategory: "History",
+          subCategory: "Space",
+          preciseCategory: "Moon Landing",
+          quizID: "quiz13",
+          quizTheme: "History Quiz"
+        },
+        {
+          title: "Combien de côtés a un hexagone?",
+          mainCategory: "Mathematics",
+          subCategory: "Geometry",
+          preciseCategory: "Shapes",
+          quizID: "quiz14",
+          quizTheme: "Math Quiz"
+        },
+        {
+          title: "Quel est le plus grand océan du monde?",
+          mainCategory: "Geography",
+          subCategory: "Oceans",
+          preciseCategory: "World",
+          quizID: "quiz15",
+          quizTheme: "Geography Quiz"
+        },
+        {
+          title: "Quelle est la capitale de l'Italie?",
+          mainCategory: "Geography",
+          subCategory: "Europe",
+          preciseCategory: "Italy",
+          quizID: "quiz16",
+          quizTheme: "Geography Quiz"
+        },
+        {
+          title: "Quelle est l'œuvre la plus célèbre de Shakespeare?",
+          mainCategory: "Literature",
+          subCategory: "English Literature",
+          preciseCategory: "Classics",
+          quizID: "quiz17",
+          quizTheme: "Literature Quiz"
+        },
+        {
+          title: "Quel est le sport national du Brésil?",
+          mainCategory: "Sports",
+          subCategory: "Team Sports",
+          preciseCategory: "Brazil",
+          quizID: "quiz18",
+          quizTheme: "Sports Quiz"
+        },
+        {
+          title: "Quel est le symbole chimique du sodium?",
+          mainCategory: "Science",
+          subCategory: "Chemistry",
+          preciseCategory: "Elements",
+          quizID: "quiz19",
+          quizTheme: "Chemistry Quiz"
+        },
+        {
+          title: "Quel est le plus petit pays du monde?",
+          mainCategory: "Geography",
+          subCategory: "World",
+          preciseCategory: "Microstates",
+          quizID: "quiz20",
+          quizTheme: "Geography Quiz"
+        }
+        // More questions...
+      ], // Liste statique de questions
+      firstLoad: true, // Track if it's the first time loading questions
     };
   },
   mounted() {
-    this.checkAuthStatus();
-    this.fetchQuestions(); // Fetch questions when the component is mounted
+    this.getRandomQuestion(); // Get a random question when the component is mounted
   },
   methods: {
-    checkAuthStatus() {
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        signInAnonymously(auth)
-          .then((result) => {
-            console.log("Utilisateur connecté anonymement:", result.user);
-          })
-          .catch((error) => {
-            console.error("Erreur lors de la connexion anonyme:", error.message);
-          });
-      } else {
-        console.log("Utilisateur déjà connecté :", currentUser);
-      }
-    },
-    startQuiz() {
-      this.$router.push("/study"); // Navigate to the study/quiz page
-    },
     async submitAnswer() {
       const answerData = {
         question: this.question, // Keep the current question
@@ -145,59 +303,18 @@ export default {
         }
       });
     },
-    fetchQuestions() {
-      const quizzesRef = ref(database, '/quizzs2'); // Root path for quizzes
-      onValue(quizzesRef, (snapshot) => {
-        const quizzesData = snapshot.val();
-        this.questionsList = [];
-
-        // Loop over main categories, subcategories, precise categories, and quiz IDs to get the questions
-        for (const mainCategory in quizzesData) {
-          for (const subCategory in quizzesData[mainCategory]) {
-            for (const preciseCategory in quizzesData[mainCategory][subCategory]) {
-              for (const quizID in quizzesData[mainCategory][subCategory][preciseCategory]) {
-                const quiz = quizzesData[mainCategory][subCategory][preciseCategory][quizID];
-                if (quiz.questions) {
-                  // Push all questions from this quiz into the questionsList array
-                  this.questionsList.push(...quiz.questions.map(question => ({
-                    ...question, 
-                    mainCategory, 
-                    subCategory, 
-                    preciseCategory, 
-                    quizID, 
-                    quizTheme: quiz.theme // Add additional details for each question
-                  })));
-                }
-              }
-            }
-          }
-        }
-
-        // Only call getRandomQuestion once after fetching questions for the first time
-        if (this.firstLoad) {
-          this.getRandomQuestion(); // Get a random question
-          this.firstLoad = false; // Set the first load to false
-        }
-      });
-    },
     getRandomQuestion() {
       if (this.questionsList.length > 0) {
         const randomIndex = Math.floor(Math.random() * this.questionsList.length);
         const randomQuestion = this.questionsList[randomIndex];
         this.question = randomQuestion.title; // Display the random question
-        this.quizMetadata = {
-          mainCategory: randomQuestion.mainCategory,
-          subCategory: randomQuestion.subCategory,
-          preciseCategory: randomQuestion.preciseCategory,
-          quizID: randomQuestion.quizID,
-          quizTheme: randomQuestion.quizTheme,
-        }; // Store the metadata for future use if needed
       } else {
         this.question = "Aucune question disponible pour le moment.";
       }
     },
   }
 };
+
 
 </script>
 

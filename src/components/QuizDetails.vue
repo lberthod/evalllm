@@ -3,34 +3,43 @@
     <div v-if="quiz">
       <header class="quiz-header">
         <h1>{{ quiz.theme }}</h1>
-        <p class="quiz-description">Testez vos connaissances et voyez comment vous progressez à travers les questions suivantes.</p>
+        <p class="quiz-description">Testez vos connaissances et voyez comment vous progressez à travers les questions
+          suivantes.</p>
       </header>
 
       <!-- Afficher les catégories avec un design plus ergonomique -->
       <div class="categories">
-        <p class="category"><span class="category-label">Main Category:</span> {{ mainCategory }}</p>
-        <p class="category"><span class="category-label">Sub Category:</span> {{ subCategory }}</p>
-        <p class="category"><span class="category-label">Precise Category:</span> {{ preciseCategory }}</p>
+        <p class="category"><span class="category-label">Catégorie principale:</span> {{ mainCategory }}</p>
+        <p class="category"><span class="category-label">Categorie secondaire:</span> {{ subCategory }}</p>
+        <p class="category"><span class="category-label">Categorie précise:</span> {{ preciseCategory }}</p>
       </div>
 
       <div v-for="(question, index) in quiz.questions" :key="index" class="question-block">
         <h3>Question {{ index + 1 }}: {{ question.title }}
           <!-- Ajouter l'icône d'ampoule pour l'aide -->
-          <font-awesome-icon :icon="['fas', 'lightbulb']" class="help-icon" @click="sendHelpRequest(index)" title="Besoin d'aide ?" />
+          <font-awesome-icon :icon="['fas', 'lightbulb']" class="help-icon" @click="sendHelpRequest(index)"
+            title="Besoin d'aide ?" />
         </h3>
 
         <!-- Vérifier si la question a été réussie précédemment -->
         <p v-if="correctAnswers[index]" class="success-message">Réussi le {{ formatDate(correctAnswers[index]) }}</p>
 
+        <!--    @copy="preventCopyPaste"
+            @paste="preventCopyPaste" 
+            -->
         <form @submit.prevent="submitAnswer(index)" class="answer-form">
-          <input v-model="answers[index]" type="text" placeholder="Votre réponse..." required />
+          <input v-model="answers[index]" type="text"  placeholder="Votre réponse..." required 
+          
+        />
           <div class="buttons">
             <button type="submit">Envoyer</button>
           </div>
         </form>
 
+
         <!-- Message: Afficher la réponse soumise -->
-        <p v-if="submittedAnswers[index]" class="submitted-answer">Vous avez transmis la réponse: "{{ submittedAnswers[index] }}"</p>
+        <p v-if="submittedAnswers[index]" class="submitted-answer">Vous avez transmis la réponse: "{{
+          submittedAnswers[index] }}"</p>
 
         <p v-if="successMessages[index]" class="success">{{ successMessages[index] }}</p>
         <p v-if="feedbackMessages[index]" class="feedback">{{ feedbackMessages[index] }}</p>
@@ -56,9 +65,10 @@
 </template>
 
 <script>
-import { ref, get, push,  onValue } from 'firebase/database';
+import { ref, get, push, onValue, update } from 'firebase/database';
 import { getCurrentUser, database } from '@/firebase';
 import { defineComponent } from 'vue';
+import MarkdownIt from 'markdown-it'; // Importer la bibliothèque markdown-it
 
 export default defineComponent({
   data() {
@@ -76,10 +86,10 @@ export default defineComponent({
       showHelpOverlay: false,
       loadingHelp: false,
       theoryExplanation: null,
+      md: new MarkdownIt(), // Initialiser markdown-it
     };
   },
   created() {
-    // Charger les paramètres depuis la route et charger le quiz
     this.mainCategory = this.$route.params.mainCategory;
     this.subCategory = this.$route.params.subCategory;
     this.preciseCategory = this.$route.params.preciseCategory;
@@ -103,6 +113,9 @@ export default defineComponent({
         console.error('Erreur lors du chargement du quiz:', error);
       });
     },
+
+
+
     async checkCorrectAnswers() {
       const user = getCurrentUser();
       const db = database;
@@ -120,11 +133,16 @@ export default defineComponent({
         }
       }
     },
+
+
     formatDate(dateString) {
       const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
       const date = new Date(dateString);
       return date.toLocaleString('fr-FR', options);
     },
+
+
+
     async submitAnswer(questionIndex) {
       const user = getCurrentUser();
       const db = database;
@@ -167,14 +185,69 @@ export default defineComponent({
         }
       });
     },
-    async sendHelpRequest() {
-      // Code pour gérer la demande d'aide
+
+    preventCopyPaste(event) {
+    event.preventDefault();
+  },
+    async sendHelpRequest(index) {
+      this.currentQuestionIndex = index;
+      this.showHelpOverlay = true;
+      this.loadingHelp = true;
+
+      const db = database;
+      const question = this.quiz.questions[index];
+      const quizId = this.$route.params.quizId;
+
+      const theoryPath = `help/${quizId}${question.title}`;
+      const theoryRef = ref(db, theoryPath);
+
+      // Ajouter un listener pour surveiller les mises à jour sur le champ theory
+      onValue(theoryRef, (snapshot) => {
+        const theoryData = snapshot.val();
+        if (theoryData && theoryData.theory) {
+          // Utiliser markdown-it pour convertir Markdown en HTML
+          this.theoryExplanation = this.md.render(theoryData.theory);
+          this.loadingHelp = false;
+        } else {
+          this.theoryExplanation = 'Aucune aide théorique disponible pour cette question.';
+        }
+      }, (error) => {
+        console.error("Erreur lors de l'écoute des mises à jour sur theory:", error);
+        this.theoryExplanation = 'Erreur lors du chargement de l\'aide.';
+        this.loadingHelp = false;
+      });
+
+      // Si aucune aide n'est disponible, envoyer les données de la question dans Firebase
+      try {
+        const snapshot = await get(theoryRef);
+        if (!snapshot.exists()) {
+          console.log("Besoin d'aide détecté, envoi des données de la question.");
+          const helpRequestData = {
+            mainCategory: this.mainCategory,
+            subCategory: this.subCategory,
+            preciseCategory: this.preciseCategory,
+            question: question.title,
+            timestamp: new Date().toISOString(),
+            status: "pending",
+            userId: getCurrentUser().uid
+          };
+
+          await update(ref(db, theoryPath), helpRequestData);
+          console.log("Demande d'aide envoyée avec succès pour la question :", question.title);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement de l\'aide:', error);
+        this.theoryExplanation = 'Erreur lors du chargement de l\'aide.';
+        this.loadingHelp = false;
+      }
     },
     closeHelpOverlay() {
       this.showHelpOverlay = false;
-    }
+      this.theoryExplanation = null;
+    },
   }
 });
+
 </script>
 
 

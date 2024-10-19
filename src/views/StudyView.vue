@@ -17,7 +17,7 @@
         </select>
       </div>
 
-      <div v-if="subCategories.length > 0" class="filter-group">
+      <div v-if="subCategories && subCategories.length > 0" class="filter-group">
         <p>Filtrer par sous-catégorie :</p>
         <select v-model="selectedSubCategory" @change="fetchQuizzesForSubCategory">
           <option disabled value="">Sélectionnez une sous-catégorie</option>
@@ -25,7 +25,7 @@
         </select>
       </div>
 
-      <div v-if="preciseCategories.length > 0" class="filter-group">
+      <div v-if="preciseCategories && preciseCategories.length > 0" class="filter-group">
         <p>Filtrer par catégorie précise :</p>
         <select v-model="selectedPreciseCategory" @change="fetchQuizzesForPreciseCategory">
           <option disabled value="">Sélectionnez une catégorie précise</option>
@@ -35,25 +35,23 @@
     </div>
 
     <!-- Quiz List -->
-    <div v-if="paginatedQuizzes.length > 0" class="quiz-list">
+    <div v-if="paginatedQuizzes && paginatedQuizzes.length > 0" class="quiz-list">
       <h2>Quizzes disponibles</h2>
       <ul>
         <li v-for="(quiz, index) in paginatedQuizzes" :key="index" class="quiz-item">
-          <router-link
-            :to="{
-              name: 'QuizView',
-              params: {
-                mainCategory: quiz.category.main,
-                subCategory: quiz.category.sub,
-                preciseCategory: quiz.category.precise,
-                quizId: quiz.id
-              }
-            }"
-            class="quiz-button"
-          >
+          <router-link v-if="quiz.category && quiz.category.main && quiz.category.sub && quiz.category.precise" :to="{
+            name: 'QuizView',
+            params: {
+              mainCategory: quiz.category.main,
+              subCategory: quiz.category.sub,
+              preciseCategory: quiz.category.precise,
+              quizId: quiz.id
+            }
+          }" class="quiz-button">
             <i class="fas fa-mountain"></i> <!-- Icon representing quiz as a journey -->
             {{ quiz.theme }}
           </router-link>
+          <p v-else>Aucune catégorie valide pour ce quiz.</p>
         </li>
       </ul>
 
@@ -64,12 +62,7 @@
         <button v-if="currentPage > 10" @click="changePage(currentPage - 10)">« -10</button>
         <button v-if="currentPage > 25" @click="changePage(currentPage - 25)">« -25</button>
 
-        <button
-          v-for="page in visiblePages"
-          :key="page"
-          @click="changePage(page)"
-          :class="{ 'active': page === currentPage }"
-        >
+        <button v-for="page in visiblePages" :key="page" @click="changePage(page)" :class="{ 'active': page === currentPage }">
           {{ page }}
         </button>
 
@@ -88,12 +81,14 @@
 </template>
 
 <script>
+import { getData } from "@/firebase"; // Import Firebase data fetching method
 import categoryData from "@/assets/category.json"; // Import categories from local JSON
+import { ref } from "vue"; // Import ref from Vue
 
 export default {
   data() {
     return {
-      quizzes: [], // List of all quizzes (this can still be fetched from Firebase or added manually)
+      quizzes: [], // List of all quizzes fetched from Firebase
       filteredQuizzes: [], // Quizzes filtered by selected categories
       categories: [], // Main categories
       subCategories: [], // Subcategories
@@ -104,16 +99,20 @@ export default {
       quizzesPerPage: 10, // Quizzes per page
       currentPage: 1, // Current page
       visiblePageCount: 5, // Number of pages visible in pagination
+      quizRefs: [] // Array to store quiz references
     };
   },
   computed: {
     paginatedQuizzes() {
-      const start = (this.currentPage - 1) * this.quizzesPerPage;
-      const end = start + this.quizzesPerPage;
-      return this.filteredQuizzes.slice(start, end);
+      if (this.filteredQuizzes && this.filteredQuizzes.length > 0) {
+        const start = (this.currentPage - 1) * this.quizzesPerPage;
+        const end = start + this.quizzesPerPage;
+        return this.filteredQuizzes.slice(start, end);
+      }
+      return [];
     },
     totalPages() {
-      return Math.ceil(this.filteredQuizzes.length / this.quizzesPerPage);
+      return Math.ceil((this.filteredQuizzes ? this.filteredQuizzes.length : 0) / this.quizzesPerPage);
     },
     visiblePages() {
       const startPage = Math.max(1, this.currentPage - Math.floor(this.visiblePageCount / 2));
@@ -126,58 +125,102 @@ export default {
     },
   },
   methods: {
-    changePage(page) {
-      if (page > 0 && page <= this.totalPages) {
-        this.currentPage = page;
-      }
-    },
     fetchQuizzesForMainCategory() {
-      this.filteredQuizzes = [];
       this.subCategories = [];
       this.preciseCategories = [];
+      this.filteredQuizzes = [];
 
       const mainCategory = this.selectedMainCategory;
 
       if (mainCategory) {
-        // Set subcategories based on the selected main category
-        const selectedCategory = this.categories.find(cat => cat.main_category === this.selectedMainCategory);
-        this.subCategories = selectedCategory ? selectedCategory.sub_categories : [];
+        const selectedCategory = this.categories.find(cat => cat.main_category === mainCategory);
+        if (selectedCategory) {
+          this.subCategories = selectedCategory.sub_categories || [];
+        }
       }
     },
     fetchQuizzesForSubCategory() {
-      this.filteredQuizzes = [];
       this.preciseCategories = [];
+      this.filteredQuizzes = [];
 
       const subCategory = this.selectedSubCategory;
 
       if (subCategory) {
-        // Set precise categories based on the selected subcategory
-        const selectedSubCat = this.subCategories.find(subCat => subCat.name === this.selectedSubCategory);
-        this.preciseCategories = selectedSubCat ? selectedSubCat.precise_categories : [];
+        const selectedSubCat = this.subCategories.find(subCat => subCat.name === subCategory);
+        if (selectedSubCat) {
+          this.preciseCategories = selectedSubCat.precise_categories || [];
+        }
       }
     },
     fetchQuizzesForPreciseCategory() {
-      // This method would handle fetching quizzes based on the selected precise category.
-      // Since you are using a local JSON, you might want to add some mock data for quizzes or adapt this logic.
+      this.filteredQuizzes = [];
+
+      const mainCategory = this.selectedMainCategory;
+      const subCategory = this.selectedSubCategory;
+      const preciseCategory = this.selectedPreciseCategory;
+
+      if (!mainCategory || !subCategory || !preciseCategory) {
+        console.error("Catégories incomplètes, impossible de récupérer les quiz.");
+        return;
+      }
+
+      console.log(`Fetching quizzes for: ${mainCategory}, ${subCategory}, ${preciseCategory}`);
+      this.loadQuizzesFromFirebase(mainCategory, subCategory, preciseCategory);
+    },
+    loadQuizzesFromFirebase(mainCategory, subCategory, preciseCategory) {
+      const path = `quizzs2/${mainCategory}/${subCategory}/${preciseCategory}`;
+
+      getData(path).then((snapshot) => {
+        const quizzes = [];
+        this.quizRefs = [];
+
+        snapshot.forEach(childSnapshot => {
+          const quiz = childSnapshot.val();
+          quiz.category = {
+            main: mainCategory,
+            sub: subCategory,
+            precise: preciseCategory
+          };
+
+          quiz.id = childSnapshot.key;
+
+          const quizRef = ref(null);
+          this.quizRefs.push(quizRef);
+
+          quizzes.push({ ...quiz, ref: quizRef });
+        });
+
+        this.quizzes = quizzes;
+        this.filteredQuizzes = quizzes;
+      }).catch((error) => {
+        console.error("Erreur lors du chargement des quizzes depuis Firebase : ", error);
+      });
     }
   },
   created() {
-    // Fetch categories from the local JSON
-    this.categories = categoryData.categories;
+    if (categoryData.categories) {
+      this.categories = categoryData.categories;
+    }
   }
 };
 </script>
 
+<style scoped>
+/* Your existing styles */
+</style>
 
 
-<style scoped>.container {
+<style scoped>
+.container {
   max-width: 900px;
-  margin: 0 auto; /* Center the container */
+  margin: 0 auto;
+  /* Center the container */
   padding: 30px;
   background-color: #f8f9fa;
   border-radius: 12px;
   box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.1);
-  text-align: center; /* Center all text inside the container */
+  text-align: center;
+  /* Center all text inside the container */
 }
 
 /* Hero Section */
@@ -198,28 +241,33 @@ export default {
 
 .hero p {
   font-size: 18px;
-  margin-bottom: 0; /* Ensure the spacing is consistent */
+  margin-bottom: 0;
+  /* Ensure the spacing is consistent */
 }
 
 /* Filters */
 .filters {
   margin-bottom: 30px;
   display: flex;
-  flex-direction: column; /* Make the filter groups stacked */
+  flex-direction: column;
+  /* Make the filter groups stacked */
   align-items: center;
   gap: 20px;
 }
 
 .filter-group {
-  width: 80%; /* Center-align filter dropdowns */
-  max-width: 600px; /* Limit the max width for better alignment */
+  width: 80%;
+  /* Center-align filter dropdowns */
+  max-width: 600px;
+  /* Limit the max width for better alignment */
 }
 
 .filter-group p {
   font-size: 18px;
   color: #333;
   margin-bottom: 8px;
-  text-align: left; /* Align text inside filter group */
+  text-align: left;
+  /* Align text inside filter group */
 }
 
 select {
@@ -243,7 +291,8 @@ select:focus {
   list-style: none;
   padding: 0;
   margin: 0;
-  text-align: left; /* Align quiz list text */
+  text-align: left;
+  /* Align quiz list text */
 }
 
 .quiz-item {
@@ -275,7 +324,8 @@ select:focus {
   justify-content: center;
   flex-wrap: wrap;
   margin-top: 20px;
-  gap: 5px; /* Add some spacing between buttons */
+  gap: 5px;
+  /* Add some spacing between buttons */
 }
 
 .pagination button {
@@ -329,5 +379,4 @@ select:focus {
     font-size: 12px;
   }
 }
-
 </style>
